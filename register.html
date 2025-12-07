@@ -72,24 +72,13 @@
 
                 <div class="form-group">
                     <label>أوقات العمل</label>
-                    <input type="text" name="workHours" class="form-control" required
-                        placeholder="مثال: 8 صباحاً - 8 مساءً">
-                </div>
-
-                <div class="form-group">
-                    <label>مصدر المياه</label>
-                    <select name="source" class="form-control">
-                        <option value="KHASHA">الخشة</option>
-                        <option value="WADI_ZOYA">وادي زويا</option>
-                        <option value="OTHER">مصدر آخر</option>
+                    <select name="workHours" class="form-control">
+                        <option value="ALWAYS">متاح دائماً (24/7)</option>
+                        <option value="MORNING">الفترة الصباحية فقط</option>
+                        <option value="EVENING">الفترة المسائية فقط</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label>الموقع / التمركز</label>
-                    <input type="text" name="location" class="form-control" required
-                        placeholder="مثال: وسط البلاد، حي الجهاد">
-                </div>
+                <!-- Source and Location removed -->
 
                 <div class="form-group">
                     <label>السعر (دينار ليبي)</label>
