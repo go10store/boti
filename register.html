@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل سائق - بوطي</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container nav-content">
+            <div class="logo">
+                <span style="color:var(--text-main)">تطبيق</span> بوطي
+            </div>
+            <a href="index.html" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="margin-left:8px">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                العودة للرئيسية
+            </a>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 600px; margin-top: 4rem;">
+        <div class="card slide-up">
+            <h1 style="text-align: center; color: var(--accent); margin-bottom: 0.5rem; font-size: 2rem;">انضم لشبكة
+                بوطي</h1>
+            <p style="text-align: center; color: var(--text-sub); margin-bottom: 2rem;">سجل بياناتك واستقبل طلبات المياه
+                من سكان الزنتان</p>
+
+            <form id="regForm">
+                <div class="form-group">
+                    <label>الاسم الثلاثي</label>
+                    <input type="text" name="name" class="form-control" required placeholder="مثال: علي محمد الزنتاني">
+                </div>
+
+                <div class="form-group">
+                    <label>رقم الهاتف (ليبيا فقط)</label>
+                    <input type="tel" name="phone" class="form-control" required placeholder="09xxxxxxxx"
+                        pattern="09[0-9]{8}" maxlength="10">
+                    <small style="color: var(--text-sub); font-size: 0.85rem;">يجب أن يبدأ بـ 09 ويتكون من 10
+                        أرقام</small>
+                </div>
+
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div style="position: relative;">
+                        <input type="password" name="password" id="regPassword" class="form-control" required
+                            placeholder="أدخل كلمة مرور قوية" minlength="4">
+                        <button type="button" onclick="togglePassword('regPassword', this)"
+                            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--accent); font-size: 1.2rem;">👁️</button>
+                    </div>
+                    <small style="color: var(--text-sub); font-size: 0.85rem;">4 أحرف على الأقل (حروف وأرقام)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع الشاحنة</label>
+                    <input type="text" name="truckType" class="form-control" required
+                        placeholder="مثال: هينو، ميتسوبيشي">
+                </div>
+
+                <div class="form-group">
+                    <label>سعة الشاحنة (لتر)</label>
+                    <input type="number" name="capacity" class="form-control" required placeholder="مثال: 5000">
+                </div>
+
+                <div class="form-group">
+                    <label>أوقات العمل</label>
+                    <input type="text" name="workHours" class="form-control" required
+                        placeholder="مثال: 8 صباحاً - 8 مساءً">
+                </div>
+
+                <div class="form-group">
+                    <label>مصدر المياه</label>
+                    <select name="source" class="form-control">
+                        <option value="KHASHA">الخشة</option>
+                        <option value="WADI_ZOYA">وادي زويا</option>
+                        <option value="OTHER">مصدر آخر</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>الموقع / التمركز</label>
+                    <input type="text" name="location" class="form-control" required
+                        placeholder="مثال: وسط البلاد، حي الجهاد">
+                </div>
+
+                <div class="form-group">
+                    <label>السعر (دينار ليبي)</label>
+                    <input type="number" name="price" class="form-control" required placeholder="مثال: 50">
+                </div>
+
+                <div class="form-group">
+                    <label>ملاحظات إضافية (اختياري)</label>
+                    <textarea name="bio" class="form-control" rows="3" placeholder="أي معلومات إضافية..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="margin-left:8px">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    تسجيل الحساب
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 تطبيق بوطي</p>
+        <p class="alkow">تم التطوير بواسطة Alkow Software</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+
+            // Client-side validation: Triple Name
+            const name = e.target.name.value.trim();
+            if (name.split(' ').length < 3) {
+                showNotification('يجب إدخال الاسم الثلاثي كاملاً', 'error');
+                return;
+            }
+
+            // Client-side validation: Libyan Phone
+            const phone = e.target.phone.value.trim();
+            if (!phone.match(/^09[0-9]{8}$/)) {
+                showNotification('رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)', 'error');
+                return;
+            }
+
+            // UI Feedback
+            btn.innerHTML = 'انتظر قليلاً... ⏳';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            const result = await addDriver(data);
+
+            if (result.success) {
+                showNotification(result.message || 'تم تسجيل حسابك بنجاح!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                showNotification(result.message || 'حدث خطأ أثناء التسجيل.', 'error');
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

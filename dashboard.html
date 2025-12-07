@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم السائق - بوطي</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container nav-content">
+            <div class="logo">
+                <span style="color:var(--text-main)">إدارة</span> المنشور
+            </div>
+            <a href="index.html" class="btn btn-secondary">الخروج</a>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 500px; margin-top: 4rem;">
+
+        <!-- Login Section -->
+        <div id="login-section" class="card fade-in">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--accent);">تسجيل الدخول</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" name="phone" class="form-control" required placeholder="091 xxx">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="passwordInput" name="password" class="form-control" required
+                            placeholder="****">
+                        <button type="button" class="input-icon-btn" onclick="togglePin('passwordInput')">👁️</button>
+                    </div>
+                </div>
+                <div style="text-align: left; margin-bottom: 1.5rem;">
+                    <a href="https://wa.me/218910000000" target="_blank"
+                        style="font-size: 0.85rem; color: var(--text-sub);">نسيت الرقم السري؟</a>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%">دخول</button>
+            </form>
+        </div>
+
+        <script>
+            function togglePin(id) {
+                const input = document.getElementById(id);
+                if (input.type === 'password') input.type = 'text';
+                else input.type = 'password';
+            }
+        </script>
+
+        <!-- Dashboard Section (Hidden by default) -->
+        <div id="dashboard-section" class="card slide-up" style="display: none;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 id="driverName" style="color: var(--accent);">مرحباً، علي</h2>
+                <p style="color: var(--text-sub);">تحكم في حالة منشورك</p>
+            </div>
+
+            <div class="form-group">
+                <label>الحالة الحالية:</label>
+                <div id="status-buttons" style="display: grid; gap: 1rem;">
+                    <button onclick="changeStatus('AVAILABLE')" class="btn"
+                        style="background: var(--success); color: #fff;">🟢 متاح (Available)</button>
+                    <button onclick="changeStatus('EN_ROUTE')" class="btn" style="background: #F59E0B; color: #fff;">🟡
+                        في الطريق</button>
+                    <button onclick="changeStatus('BUSY')" class="btn" style="background: var(--error); color: #fff;">🔴
+                        تم البيع / مشغول</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <p style="text-align: center; font-size: 0.9rem; color: var(--text-sub);">سيتم تغيير حالتك فوراً في
+                    الصفحة الرئيسية</p>
+            </div>
+
+            <!-- Account Management -->
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <h3 style="color: var(--text-main); margin-bottom: 1rem; font-size: 1.1rem;">إدارة الحساب</h3>
+                <div style="display: grid; gap: 0.8rem;">
+                    <button onclick="logout()" class="btn btn-secondary" style="width:100%">🚪 تسجيل الخروج</button>
+                    <button onclick="deleteAccount()" class="btn"
+                        style="width:100%; background: var(--error); color: white;">🗑️ طلب حذف الحساب</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        let currentDriver = null;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = e.target.phone.value;
+            const password = e.target.password.value;
+
+            // Simple client-side auth for demo
+            currentDriver = await loginDriver(phone, password);
+
+            if (currentDriver) {
+                showNotification('تم تسجيل الدخول!', 'success');
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                document.getElementById('driverName').innerText = `مرحباً، ${currentDriver.name}`;
+            } else {
+                showNotification('بيانات الدخول غير صحيحة', 'error');
+            }
+        });
+
+        async function changeStatus(status) {
+            if (!currentDriver) return;
+            const success = await updateDriverStatus(currentDriver.id, status);
+            if (success) {
+                showNotification('تم تحديث الحالة بنجاح!', 'success');
+            } else {
+                showNotification('فشل التحديث', 'error');
+            }
+        }
+
+        function logout() {
+            currentDriver = null;
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('loginForm').reset();
+            showNotification('تم تسجيل الخروج', 'info');
+        }
+
+        async function deleteAccount() {
+            if (!currentDriver) return;
+            if (!confirm('هل أنت متأكد من طلب حذف حسابك؟ سيتم إرسال الطلب للإدارة للمراجعة.')) return;
+
+            const result = await requestAccountDeletion(currentDriver.id);
+            if (result.success) {
+                showNotification(result.message, 'success');
+                setTimeout(() => {
+                    logout();
+                }, 2000);
+            } else {
+                showNotification(result.message || 'فشل إرسال الطلب', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>
