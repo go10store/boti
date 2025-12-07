@@ -7,14 +7,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
 :root {
-    --primary: #0F172A;
-    --primary-light: #1E293B;
-    --accent: #D4AF37;
-    --accent-glow: rgba(212, 175, 55, 0.4);
-    --text-main: #F8FAFC;
-    --text-sub: #94A3B8;
+    /* Water Theme Colors */
+    --primary: #0EA5E9;
+    /* Sky Blue */
+    --primary-dark: #0284C7;
+    --primary-light: #38BDF8;
+    --accent: #22D3EE;
+    /* Cyan */
+    --accent-glow: rgba(34, 211, 238, 0.4);
+    --bg-dark: #082F49;
+    /* Deep Ocean Blue */
+    --bg-card: rgba(12, 74, 110, 0.6);
+    --text-main: #F0F9FF;
+    --text-sub: #BAE6FD;
+    --glass-border: rgba(56, 189, 248, 0.2);
     --glass-bg: rgba(30, 41, 59, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
     --success: #10B981;
     --error: #EF4444;
 }
@@ -28,38 +35,50 @@
 }
 
 body {
-    background-color: #020617;
+    background-color: var(--bg-dark);
+    /* Deep Ocean Gradient */
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(34, 211, 238, 0.1) 0%, transparent 40%);
     color: var(--text-main);
     overflow-x: hidden;
     min-height: 100vh;
     position: relative;
+    font-family: 'Cairo', sans-serif;
 }
 
-/* Alive Background */
-body::before,
-body::after {
+/* Floating Bubbles Background */
+body::before {
     content: '';
     position: fixed;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    filter: blur(100px);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 30px 30px;
+    background-position: 0 0, 25px 25px;
+    animation: floatingBubbles 20s linear infinite;
     z-index: -1;
-    opacity: 0.15;
-    animation: float 20s infinite alternate ease-in-out;
+    pointer-events: none;
+    opacity: 0.5;
 }
 
-body::before {
-    background: var(--accent);
-    top: -100px;
-    right: -100px;
-}
-
+/* Remove old blobs */
 body::after {
-    background: #3B82F6;
-    bottom: -100px;
-    left: -100px;
-    animation-delay: -10s;
+    display: none;
+}
+
+@keyframes floatingBubbles {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-100px);
+    }
 }
 
 @keyframes float {
@@ -1125,21 +1144,6 @@ footer::before {
         border: 1px solid #10B981;
     }
 
-    .status-busy {
-        background: rgba(239, 68, 68, 0.2);
-        color: #EF4444;
-        border: 1px solid #EF4444;
-    }
-
-    .status-route {
-        background: rgba(245, 158, 11, 0.2);
-        color: #F59E0B;
-        border: 1px solid #F59E0B;
-    }
-
-    .card-busy {
-        opacity: 0.7;
-        filter: grayscale(0.5);
-    }
+    .status-busy {}
 
     ```
