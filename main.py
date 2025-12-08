@@ -72,15 +72,17 @@ def register():
         "id": str(uuid.uuid4()),
         "name": name,
         "phone": phone,
-        "password": password,
+        "password": password, # Changed from 'pin' to 'password'
         "price": data.get('price'),
+        "source": data.get('source'),
+        "location": data.get('location'),
+        "bio": data.get('bio', ''),
         "truckType": data.get('truckType', ''),
         "capacity": data.get('capacity', ''),
-        "workHours": data.get('workHours', 'ALWAYS'), # Default to 24/7 if missing
-        "bio": data.get('bio', ''), # Used as Note
-        "workStatus": "AVAILABLE",
-        "approvalStatus": "PENDING",
-        "priority": 0,
+        "workHours": data.get('workHours', ''),
+        "workStatus": "AVAILABLE", # AVAILABLE, BUSY, EN_ROUTE
+        "approvalStatus": "PENDING", # PENDING, APPROVED, REJECTED
+        "priority": 0, # 0 = Normal, 10 = Top/First
         "deletionRequested": False,
         "createdAt": datetime.now().isoformat()
     }
@@ -100,13 +102,14 @@ def get_public_drivers():
     # Sort by priority (higher first), then by creation date
     approved.sort(key=lambda x: (-x.get('priority', 0), x.get('createdAt', '')))
     
-    # Don't leak passwords to public
+    # Don't leak passwords/pins to public
     for d in approved:
+        if 'pin' in d: del d['pin']
         if 'password' in d: del d['password']
         
     return jsonify(approved)
 
-# API: Driver Login
+# API: Driver Login (Check Phone + Password)
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
@@ -136,24 +139,6 @@ def update_status():
     for d in drivers:
         if d['id'] == driver_id:
             d['workStatus'] = new_status
-            save_db(drivers)
-            return jsonify({"success": True})
-            
-    return jsonify({"success": False}), 404
-
-# API: Update Profile (Driver)
-@app.route('/api/driver/update', methods=['POST'])
-def update_profile():
-    data = request.json
-    driver_id = data.get('id')
-    
-    drivers = get_db()
-    for d in drivers:
-        if d['id'] == driver_id:
-            if 'phone' in data: d['phone'] = data['phone']
-            if 'price' in data: d['price'] = data['price']
-            if 'workHours' in data: d['workHours'] = data['workHours']
-            
             save_db(drivers)
             return jsonify({"success": True})
             
@@ -198,6 +183,41 @@ def approve_driver():
             
     return jsonify({"success": False}), 404
 
+# API: Admin Set Driver Priority
+@app.route('/api/admin/priority', methods=['POST'])
+def set_priority():
+    data = request.json
+    driver_id = data.get('id')
+    priority = data.get('priority', 0)
+    
+    drivers = get_db()
+    for d in drivers:
+        if d['id'] == driver_id:
+            d['priority'] = priority
+            save_db(drivers)
+            return jsonify({"success": True})
+            
+    return jsonify({"success": False}), 404
+
+# API: Update Driver Profile
+@app.route('/api/profile', methods=['POST'])
+def update_profile():
+    data = request.json
+    driver_id = data.get('id')
+    updates = {k: v for k, v in data.items() if k != 'id'}
+    
+    drivers = get_db()
+    for d in drivers:
+        if d['id'] == driver_id and d.get('approvalStatus') == 'APPROVED':
+            # Update allowed fields
+            for key, value in updates.items():
+                if key in ['phone', 'price']:
+                    d[key] = value
+            save_db(drivers)
+            return jsonify({"success": True})
+            
+    return jsonify({"success": False}), 404
+
 # API: Driver Request Account Deletion
 @app.route('/api/driver/delete-request', methods=['POST'])
 def request_deletion():
@@ -227,4 +247,5 @@ def delete_driver():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
 
