@@ -74,12 +74,6 @@ def register():
         "phone": phone,
         "password": password, # Changed from 'pin' to 'password'
         "price": data.get('price'),
-        "source": data.get('source'),
-        "location": data.get('location'),
-        "bio": data.get('bio', ''),
-        "truckType": data.get('truckType', ''),
-        "capacity": data.get('capacity', ''),
-        "workHours": data.get('workHours', ''),
         "workStatus": "AVAILABLE", # AVAILABLE, BUSY, EN_ROUTE
         "approvalStatus": "PENDING", # PENDING, APPROVED, REJECTED
         "priority": 0, # 0 = Normal, 10 = Top/First
@@ -247,5 +241,4 @@ def delete_driver():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
 
