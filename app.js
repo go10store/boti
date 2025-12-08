@@ -180,7 +180,7 @@ function renderDrivers(drivers, containerId) {
     container.innerHTML = '';
 
     if (drivers.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:3rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;"><p style="color:var(--text-sub); font-size:1.1rem;">لا يوجد سائقين حالياً. كن أول المنضمين!</p></div>';
+        container.innerHTML = '<div style="text-align:center; padding:2rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;"><p style="color:var(--text-sub); font-size:1rem;">لا يوجد سائقين حالياً. كن أول المنضمين!</p></div>';
         return;
     }
 
@@ -207,34 +207,131 @@ function renderDrivers(drivers, containerId) {
         if (status === 'BUSY') statusBadge = '<span class="status-badge status-busy">🔴 تم البيع / مشغول</span>';
         if (status === 'EN_ROUTE') statusBadge = '<span class="status-badge status-route">🟡 في الطريق</span>';
 
-        // WhatsApp Link (Remove 0 from start of phone for international format)
-        const waMsg = encodeURIComponent(`السلام عليكم، أريد طلب مياه. موقعي: `);
-        const waLink = `https://wa.me/218${driver.phone.replace(/^0/, '')}?text=${waMsg}`;
-
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
-                <h3 style="color:var(--text-main); font-size:1.2rem;">${driver.name}</h3>
+                <h3 style="color:var(--text-main); font-size:1.1rem; margin: 0;">${driver.name}</h3>
                 <span class="price-tag">${driver.price} د.ل</span>
             </div>
             
-            <div style="margin-bottom: 1rem;">${statusBadge}</div>
+            <div style="margin-bottom: 0.8rem;">${statusBadge}</div>
 
-            <div style="color: var(--text-sub); margin-bottom:1rem; font-size:0.9rem; line-height:1.5;">
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.3rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <div style="color: var(--text-sub); margin-bottom:1rem; font-size:0.85rem; line-height:1.4;">
+                <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                     <span>${driver.phone}</span>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
-                <a href="tel:${driver.phone}" onclick="showNotification('جارٍ الاتصال...', 'info')" class="btn btn-primary" style="width:100%; font-size:0.85rem; padding:0.7rem;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.4rem;">
+                <button onclick="placeOrder('${driver.id}')" class="btn btn-primary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
+                   طلب
+                </button>
+                <a href="tel:${driver.phone}" class="btn btn-secondary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
                    اتصال
-                </a>
-                <a href="${waLink}" target="_blank" class="btn btn-secondary" style="width:100%; font-size:0.85rem; padding:0.7rem;">
-                   موقع
                 </a>
             </div>
         `;
         container.appendChild(card);
     });
+}
+
+// Order Placement Function
+function placeOrder(driverId) {
+    // Create modal for order placement
+    const modal = document.createElement('div');
+    modal.id = 'orderModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    `;
+    
+    modal.innerHTML = `
+        <div class="driver-card" style="width: 90%; max-width: 400px; margin: 0; animation: slideUp 0.3s ease-out;">
+            <h3 style="color: var(--accent); margin-bottom: 1rem; text-align: center;">طلب خدمة</h3>
+            <form id="orderForm" style="margin-bottom: 1rem;">
+                <input type="hidden" id="driverId" value="${driverId}">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="customerName" class="form-control" required placeholder="أدخل اسمك الكامل">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" id="customerPhone" class="form-control" required placeholder="09xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات (اختياري)</label>
+                    <textarea id="orderNotes" class="form-control" rows="2" placeholder="أي معلومات إضافية..."></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="button" onclick="closeOrderModal()" class="btn btn-secondary" style="padding: 0.7rem;">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.7rem;">تأكيد الطلب</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const driverId = document.getElementById('driverId').value;
+        const customerName = document.getElementById('customerName').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        const orderNotes = document.getElementById('orderNotes').value;
+        
+        // Validate phone number
+        if (!customerPhone.match(/^09[0-9]{8}$/)) {
+            showNotification('رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)', 'error');
+            return;
+        }
+        
+        // Submit order
+        const orderData = {
+            driverId,
+            customerName,
+            customerPhone,
+            notes: orderNotes,
+            timestamp: new Date().toISOString()
+        };
+        
+        try {
+            const response = await fetch('/api/place-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification('تم إرسال الطلب بنجاح!', 'success');
+                closeOrderModal();
+            } else {
+                showNotification('حدث خطأ أثناء إرسال الطلب', 'error');
+            }
+        } catch (error) {
+            showNotification('فشل الاتصال بالخادم', 'error');
+        }
+    });
+}
+
+// Close order modal
+function closeOrderModal() {
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+        modal.remove();
+    }
 }
