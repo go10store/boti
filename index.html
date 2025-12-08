@@ -81,15 +81,38 @@
         let allDrivers = [];
 
         async function init() {
-            console.log('Initializing page...');
-            allDrivers = await getDrivers();
-            console.log('All drivers loaded:', allDrivers);
-            renderDrivers(allDrivers, 'driver-grid');
+            console.log('=== INITIALIZATION STARTED ===');
+            try {
+                console.log('Step 1: Calling getDrivers()...');
+                allDrivers = await getDrivers();
+                console.log('Step 2: getDrivers() returned:', allDrivers);
+                console.log('Step 3: Calling renderDrivers()...');
+                renderDrivers(allDrivers, 'driver-grid');
+                console.log('Step 4: renderDrivers() completed');
+                console.log('=== INITIALIZATION COMPLETED SUCCESSFULLY ===');
+            } catch (error) {
+                console.error('=== INITIALIZATION FAILED ===');
+                console.error('Error details:', error);
+                console.error('Error stack:', error.stack);
+                console.error('=== INITIALIZATION FAILED ===');
+                
+                // Show error message on page
+                const container = document.getElementById('driver-grid');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:2rem; grid-column:1/-1;">
+                            <p style="color:var(--error); font-size:1rem;">حدث خطأ في تحميل السائقين</p>
+                            <p style="color:var(--text-sub); font-size:0.9rem; margin-top: 0.5rem;">الخطأ: ` + error.message + `</p>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // Initialize the page
+        console.log('DOM Content Loaded Event Listener Added');
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing app...');
+            console.log('DOM Content Loaded - Starting Initialization');
             init();
         });
     </script>
