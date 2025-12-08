@@ -79,14 +79,14 @@
                     <div class="form-group">
                         <label>حدد حالتك الحالية:</label>
                         <div id="status-buttons" style="display: grid; gap: 0.8rem; margin-top: 0.5rem;">
-                            <button onclick="changeStatus('AVAILABLE')" class="btn status-btn available-btn">
-                                🟢 متاح
+                            <button onclick="changeStatus('AVAILABLE')" class="status-btn available-btn" id="availableBtn">
+                                🟢 نشط الآن
                             </button>
-                            <button onclick="changeStatus('EN_ROUTE')" class="btn status-btn route-btn">
-                                🟡 في الطريق
+                            <button onclick="changeStatus('EN_ROUTE')" class="status-btn route-btn" id="routeBtn">
+                                🟡 خارج الخدمة مؤقتاً
                             </button>
-                            <button onclick="changeStatus('BUSY')" class="btn status-btn busy-btn">
-                                🔴 تم البيع / مشغول
+                            <button onclick="changeStatus('BUSY')" class="status-btn busy-btn" id="busyBtn">
+                                🔴 خاملاً
                             </button>
                         </div>
                     </div>
@@ -167,12 +167,36 @@
 
         async function changeStatus(status) {
             if (!currentDriver) return;
+            
+            // Visual feedback - highlight selected button
+            document.getElementById('availableBtn').style.opacity = '0.7';
+            document.getElementById('routeBtn').style.opacity = '0.7';
+            document.getElementById('busyBtn').style.opacity = '0.7';
+            
+            const btnId = status === 'AVAILABLE' ? 'availableBtn' : 
+                          status === 'EN_ROUTE' ? 'routeBtn' : 'busyBtn';
+            document.getElementById(btnId).style.opacity = '1';
+            document.getElementById(btnId).style.transform = 'scale(1.05)';
+            
             const success = await updateDriverStatus(currentDriver.id, status);
             if (success) {
+                // Add pulse animation to indicate success
+                document.getElementById(btnId).classList.add('pulse');
+                setTimeout(() => {
+                    document.getElementById(btnId).classList.remove('pulse');
+                }, 500);
+                
                 showNotification('تم تحديث الحالة بنجاح!', 'success');
                 currentDriver.workStatus = status; // Update local state
+                
+                // Reset button styles after delay
+                setTimeout(() => {
+                    document.getElementById(btnId).style.transform = '';
+                }, 300);
             } else {
                 showNotification('فشل التحديث', 'error');
+                // Reset button styles
+                document.getElementById(btnId).style.transform = '';
             }
         }
 
