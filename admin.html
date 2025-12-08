@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body style="background: #0f172a;">
+<body style="background: #011627;">
     <header class="site-header">
         <div class="container nav-content">
             <div class="logo">
@@ -26,7 +26,7 @@
         </div>
     </header>
 
-    <div class="container" style="max-width:800px; margin-top:3rem;">
+    <div class="container" style="max-width:1200px; margin-top:3rem;">
 
         <!-- Login -->
         <div id="admin-login" class="card">
@@ -38,13 +38,37 @@
 
         <!-- Dashboard -->
         <div id="admin-dash" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
-                <h1 style="color:var(--accent);">طلبات الانضمام</h1>
-                <button onclick="loadRequests()" class="btn btn-secondary">🔄 تحديث</button>
+            <!-- Tabs -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+                <button onclick="showTab('drivers')" class="btn btn-secondary" id="drivers-tab">السائقين</button>
+                <button onclick="showTab('orders')" class="btn btn-secondary" id="orders-tab" style="position: relative;">
+                    الطلبات 
+                    <span id="order-notification" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-size: 0.7rem;">0</span>
+                </button>
             </div>
 
-            <div id="requests-list" class="grid" style="grid-template-columns: 1fr;">
-                <!-- Items here -->
+            <!-- Drivers Tab -->
+            <div id="drivers-tab-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                    <h1 style="color:var(--accent);">طلبات الانضمام</h1>
+                    <button onclick="loadRequests()" class="btn btn-secondary">🔄 تحديث</button>
+                </div>
+
+                <div id="requests-list" class="grid" style="grid-template-columns: 1fr;">
+                    <!-- Items here -->
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders-tab-content" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                    <h1 style="color:var(--accent);">الطلبات الجديدة</h1>
+                    <button onclick="loadOrders()" class="btn btn-secondary">🔄 تحديث</button>
+                </div>
+
+                <div id="orders-list" class="grid" style="grid-template-columns: 1fr;">
+                    <!-- Orders will be loaded here -->
+                </div>
             </div>
         </div>
 
@@ -57,6 +81,7 @@
 
     <script>
         const API_URL = '/api'; // Relative in production
+        let pendingOrdersCount = 0;
 
         async function adminLogin() {
             const pwd = document.getElementById('adminPass').value;
@@ -71,8 +96,34 @@
                 document.getElementById('admin-login').style.display = 'none';
                 document.getElementById('admin-dash').style.display = 'block';
                 loadRequests();
+                loadOrders();
+                // Check for new orders periodically
+                setInterval(loadOrders, 30000); // Check every 30 seconds
             } else {
                 alert('كلمة السر خاطئة');
+            }
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.getElementById('drivers-tab-content').style.display = 'none';
+            document.getElementById('orders-tab-content').style.display = 'none';
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab-content').style.display = 'block';
+            
+            // Update active tab button
+            document.querySelectorAll('#drivers-tab, #orders-tab').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            document.getElementById(tabName + '-tab').classList.remove('btn-secondary');
+            document.getElementById(tabName + '-tab').classList.add('btn-primary');
+            
+            // Reset notification when viewing orders
+            if (tabName === 'orders') {
+                document.getElementById('order-notification').style.display = 'none';
+                pendingOrdersCount = 0;
             }
         }
 
@@ -168,6 +219,103 @@
                 ` : ''}
             `;
             return card;
+        }
+
+        async function loadOrders() {
+            const res = await fetch(`${API_URL}/orders`);
+            const orders = await res.json();
+            const container = document.getElementById('orders-list');
+            container.innerHTML = '';
+
+            // Separate pending orders
+            const pendingOrders = orders.filter(order => order.status === 'PENDING');
+            const completedOrders = orders.filter(order => order.status !== 'PENDING');
+
+            // Update notification badge
+            pendingOrdersCount = pendingOrders.length;
+            const notificationBadge = document.getElementById('order-notification');
+            if (pendingOrdersCount > 0) {
+                notificationBadge.textContent = pendingOrdersCount;
+                notificationBadge.style.display = 'flex';
+            } else {
+                notificationBadge.style.display = 'none';
+            }
+
+            // Show Pending Orders
+            if (pendingOrders.length > 0) {
+                const pendingSection = document.createElement('div');
+                pendingSection.innerHTML = '<h2 style="color: orange; margin: 2rem 0 1rem;">الطلبات الجديدة 📋</h2>';
+                container.appendChild(pendingSection);
+
+                pendingOrders.forEach(order => {
+                    const card = createOrderCard(order);
+                    container.appendChild(card);
+                });
+            }
+
+            // Show Completed Orders
+            if (completedOrders.length > 0) {
+                const completedSection = document.createElement('div');
+                completedSection.innerHTML = '<h2 style="color: var(--text-sub); margin: 2rem 0 1rem;">الطلبات السابقة 📁</h2>';
+                container.appendChild(completedSection);
+
+                completedOrders.forEach(order => {
+                    const card = createOrderCard(order);
+                    container.appendChild(card);
+                });
+            }
+
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color: var(--text-sub);">لا توجد طلبات حالياً</p>';
+            }
+        }
+
+        function createOrderCard(order) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const statusColor = order.status === 'APPROVED' ? 'green' : order.status === 'REJECTED' ? 'red' : 'orange';
+            const statusText = order.status === 'APPROVED' ? 'مقبول' : order.status === 'REJECTED' ? 'مرفوض' : 'قيد الانتظار';
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>طلب من: ${order.customerName}</h3>
+                    <span style="color:${statusColor}; font-weight:bold;">${statusText}</span>
+                </div>
+                <div style="color:#aaa; font-size: 0.9rem; margin-top: 0.5rem;">
+                    <p>📱 ${order.customerPhone}</p>
+                    <p>⏰ ${new Date(order.timestamp).toLocaleString('ar-LY')}</p>
+                    ${order.notes ? `<p>📝 ${order.notes}</p>` : ''}
+                    ${order.response ? `<p style="color: ${statusColor};">💬 ${order.response}</p>` : ''}
+                </div>
+                
+                ${order.status === 'PENDING' ? `
+                <div style="display:flex; gap:10px; margin-top:1rem;">
+                    <button onclick="respondOrder('${order.id}', 'APPROVE')" class="btn" style="background:green; color:white; flex:1;">✅ موافقة</button>
+                    <button onclick="respondOrder('${order.id}', 'REJECT')" class="btn" style="background:red; color:white; flex:1;">❌ رفض</button>
+                </div>
+                ` : ''}
+            `;
+            return card;
+        }
+
+        async function respondOrder(orderId, response) {
+            const message = prompt(`أدخل رسالة الرد:`);
+            if (message === null) return; // User cancelled
+
+            const res = await fetch(`${API_URL}/respond-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, response, message })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('تم تحديث حالة الطلب');
+                loadOrders();
+            } else {
+                alert('فشل تحديث الطلب: ' + data.message);
+            }
         }
 
         async function decide(id, action, priority) {
