@@ -160,15 +160,15 @@ function renderDrivers(drivers, containerId) {
         return;
     }
 
-    // Backend returns workStatus NOT status
+    // Sort drivers by priority first, then by status
     drivers.sort((a, b) => {
         // First sort by priority (higher first)
         const priorityDiff = (b.priority || 0) - (a.priority || 0);
         if (priorityDiff !== 0) return priorityDiff;
         
         // Then sort by status (AVAILABLE first, then EN_ROUTE, then BUSY)
-        const priority = { 'AVAILABLE': 1, 'EN_ROUTE': 2, 'BUSY': 3 };
-        return (priority[a.workStatus] || 1) - (priority[b.workStatus] || 1);
+        const statusPriority = { 'AVAILABLE': 1, 'EN_ROUTE': 2, 'BUSY': 3 };
+        return (statusPriority[a.workStatus] || 1) - (statusPriority[b.workStatus] || 1);
     });
 
     drivers.forEach((driver, index) => {
@@ -177,8 +177,6 @@ function renderDrivers(drivers, containerId) {
         const card = document.createElement('div');
         card.className = `card ${status === 'BUSY' ? 'card-busy' : ''}`;
         card.style.animationDelay = `${index * 0.1}s`;
-
-        const sourceName = driver.source === 'KHASHA' ? 'الخشة' : driver.source === 'WADI_ZOYA' ? 'وادي زويا' : 'مصدر آخر';
 
         // Status Badge Logic
         let statusBadge = '<span class="status-badge status-available">🟢 متاح</span>';
@@ -199,14 +197,9 @@ function renderDrivers(drivers, containerId) {
 
             <div style="color: var(--text-sub); margin-bottom:1.2rem; font-size:0.95rem; line-height:1.6;">
                 <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.3rem;">
-                    ${ICONS.location} <span>${driver.location}</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    ${ICONS.water} <span>${sourceName}</span>
+                    ${ICONS.phone} <span>${driver.phone}</span>
                 </div>
             </div>
-
-            ${driver.bio ? `<div style="background:rgba(255,255,255,0.03); padding:0.8rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.9rem; font-style:italic; color:var(--text-sub);">"${driver.bio}"</div>` : ''}
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
                 <a href="tel:${driver.phone}" onclick="showNotification('جارٍ الاتصال...', 'info')" class="btn btn-primary" style="width:100%; font-size:0.9rem; padding:0.8rem;">
