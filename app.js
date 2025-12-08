@@ -5,7 +5,9 @@ let currentOrders = [];
 // API Functions
 async function getDrivers() {
     try {
+        console.log('Fetching drivers...');
         const res = await fetch('/api/drivers');
+        console.log('Drivers response status:', res.status);
         const drivers = await res.json();
         console.log('Loaded drivers:', drivers); // Debug info
         return drivers;
@@ -23,6 +25,108 @@ async function getOrders() {
     } catch (err) {
         console.error('Failed to load orders:', err);
         return [];
+    }
+}
+
+// Driver Registration
+async function addDriver(driverData) {
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(driverData)
+        });
+        return await res.json();
+    } catch (err) {
+        console.error('Registration error:', err);
+        return { success: false, message: 'فشل الاتصال بالخادم' };
+    }
+}
+
+// Driver Login
+async function loginDriver(phone, password) {
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Store in session storage for persistence
+            sessionStorage.setItem('currentDriver', JSON.stringify(data.driver));
+            return data.driver;
+        }
+        showNotification(data.message || 'فشل تسجيل الدخول', 'error');
+        return null;
+    } catch (err) {
+        console.error('Login error:', err);
+        showNotification('فشل الاتصال بالخادم', 'error');
+        return null;
+    }
+}
+
+// Get current driver from session
+function getCurrentDriver() {
+    try {
+        const driver = sessionStorage.getItem('currentDriver');
+        return driver ? JSON.parse(driver) : null;
+    } catch {
+        return null;
+    }
+}
+
+// Clear driver session
+function clearDriverSession() {
+    sessionStorage.removeItem('currentDriver');
+}
+
+// Update Driver Status
+async function updateDriverStatus(driverId, status) {
+    try {
+        const res = await fetch('/api/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: driverId, status })
+        });
+        const data = await res.json();
+        return data.success;
+    } catch (err) {
+        console.error('Status update error:', err);
+        showNotification('فشل تحديث الحالة', 'error');
+        return false;
+    }
+}
+
+// Update Driver Profile
+async function updateDriverProfile(driverId, updates) {
+    try {
+        const res = await fetch('/api/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: driverId, ...updates })
+        });
+        const data = await res.json();
+        return data.success;
+    } catch (err) {
+        console.error('Profile update error:', err);
+        showNotification('فشل تحديث المعلومات', 'error');
+        return false;
+    }
+}
+
+// Request Account Deletion
+async function requestAccountDeletion(driverId) {
+    try {
+        const res = await fetch('/api/driver/delete-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: driverId })
+        });
+        return await res.json();
+    } catch (err) {
+        console.error('Delete request error:', err);
+        return { success: false, message: 'فشل الاتصال بالخادم' };
     }
 }
 
