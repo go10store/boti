@@ -2,18 +2,6 @@
   تطبيق بوطي - Boti App Logic
   Developed by Alkow Software
 */
-/* 
-  تطبيق بوطي - Boti App Logic
-  Developed by Alkow Software
-*/
-/* 
-  تطبيق بوطي - Boti App Logic
-  Developed by Alkow Software
-*/
-/* 
-  تطبيق بوطي - Boti App Logic
-  Developed by Alkow Software
-*/
 
 const ICONS = {
     phone: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
@@ -27,6 +15,7 @@ const ICONS = {
 
 const API_URL = '/api'; // Use relative path so it works on localhost & Railway
 
+// Enhanced Driver Authentication with Session Storage
 async function getDrivers() {
     try {
         const res = await fetch(`${API_URL}/drivers`);
@@ -53,6 +42,7 @@ async function addDriver(driver) {
     }
 }
 
+// Enhanced Login with Better Error Handling
 async function loginDriver(phone, password) {
     try {
         const res = await fetch(`${API_URL}/login`, {
@@ -61,8 +51,28 @@ async function loginDriver(phone, password) {
             body: JSON.stringify({ phone, password })
         });
         const data = await res.json();
-        return data.success ? data.driver : null;
-    } catch (e) { return null; }
+        
+        if (data.success) {
+            // Store driver session
+            sessionStorage.setItem('currentDriver', JSON.stringify(data.driver));
+            return data.driver;
+        }
+        return null;
+    } catch (e) { 
+        console.error("Login error", e);
+        return null; 
+    }
+}
+
+// Check for existing session
+function getCurrentDriver() {
+    const driverData = sessionStorage.getItem('currentDriver');
+    return driverData ? JSON.parse(driverData) : null;
+}
+
+// Clear session on logout
+function clearDriverSession() {
+    sessionStorage.removeItem('currentDriver');
 }
 
 async function updateDriverStatus(id, newStatus) {
@@ -75,6 +85,21 @@ async function updateDriverStatus(id, newStatus) {
         const data = await res.json();
         return data.success;
     } catch (e) { return false; }
+}
+
+// Update Driver Profile Function
+async function updateDriverProfile(driverId, updates) {
+    try {
+        const res = await fetch(`${API_URL}/profile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: driverId, ...updates })
+        });
+        const data = await res.json();
+        return data.success;
+    } catch (e) {
+        return false;
+    }
 }
 
 // Delete Request Function
@@ -137,6 +162,11 @@ function renderDrivers(drivers, containerId) {
 
     // Backend returns workStatus NOT status
     drivers.sort((a, b) => {
+        // First sort by priority (higher first)
+        const priorityDiff = (b.priority || 0) - (a.priority || 0);
+        if (priorityDiff !== 0) return priorityDiff;
+        
+        // Then sort by status (AVAILABLE first, then EN_ROUTE, then BUSY)
         const priority = { 'AVAILABLE': 1, 'EN_ROUTE': 2, 'BUSY': 3 };
         return (priority[a.workStatus] || 1) - (priority[b.workStatus] || 1);
     });
