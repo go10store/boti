@@ -5,14 +5,19 @@ let currentOrders = [];
 // API Functions
 async function getDrivers() {
     try {
-        console.log('Fetching drivers from API...');
+        console.log('[DEBUG] Fetching drivers from API...');
         const res = await fetch('/api/drivers');
-        console.log('Drivers API response status:', res.status);
+        console.log('[DEBUG] Drivers API response status:', res.status);
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const drivers = await res.json();
-        console.log('Drivers data received:', JSON.stringify(drivers, null, 2));
+        console.log('[DEBUG] Drivers data received:', JSON.stringify(drivers, null, 2));
         return drivers;
     } catch (err) {
-        console.error('Failed to load drivers:', err);
+        console.error('[ERROR] Failed to load drivers:', err);
         showNotification('فشل تحميل السائقين', 'error');
         return [];
     }
@@ -132,12 +137,18 @@ async function requestAccountDeletion(driverId) {
 
 // UI Functions
 function renderDrivers(drivers, containerId) {
-    console.log('Rendering drivers:', drivers);
+    console.log('[DEBUG] renderDrivers called with:', drivers, 'containerId:', containerId);
     const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.error('[ERROR] Container not found:', containerId);
+        return;
+    }
+    
     container.innerHTML = '';
 
     if (drivers.length === 0) {
-        console.log('No drivers to display');
+        console.log('[DEBUG] No drivers to display');
         container.innerHTML = `
             <div style="text-align:center; padding:2rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;">
                 <p style="color:var(--text-sub); font-size:1rem;">لا يوجد سائقين متاحين حالياً.</p>
@@ -147,7 +158,7 @@ function renderDrivers(drivers, containerId) {
         return;
     }
 
-    console.log('Displaying', drivers.length, 'drivers');
+    console.log('[DEBUG] Displaying', drivers.length, 'drivers');
     
     // Sort drivers by priority first, then by status
     drivers.sort((a, b) => {
@@ -165,7 +176,7 @@ function renderDrivers(drivers, containerId) {
 
         const card = document.createElement('div');
         card.className = `driver-card ${status === 'BUSY' ? 'card-busy' : ''}`;
-        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animationDelay = (index * 0.1) + 's';
 
         // Status Badge Logic
         let statusBadge = '<span class="status-badge status-available">🟢 متاح</span>';
@@ -174,30 +185,32 @@ function renderDrivers(drivers, containerId) {
 
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
-                <h3 style="color:var(--text-main); font-size:1.1rem; margin: 0;">${driver.name}</h3>
-                <span class="price-tag">${driver.price} د.ل</span>
+                <h3 style="color:var(--text-main); font-size:1.1rem; margin: 0;">` + driver.name + `</h3>
+                <span class="price-tag">` + driver.price + ` د.ل</span>
             </div>
             
-            <div style="margin-bottom: 0.8rem;">${statusBadge}</div>
+            <div style="margin-bottom: 0.8rem;">` + statusBadge + `</div>
 
             <div style="color: var(--text-sub); margin-bottom:1rem; font-size:0.85rem; line-height:1.4;">
                 <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                    <span>${driver.phone}</span>
+                    <span>` + driver.phone + `</span>
                 </div>
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.4rem;">
-                <button onclick="placeOrder('${driver.id}')" class="btn btn-primary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
+                <button onclick="placeOrder('` + driver.id + `')" class="btn btn-primary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
                    طلب
                 </button>
-                <a href="tel:${driver.phone}" class="btn btn-secondary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
+                <a href="tel:` + driver.phone + `" class="btn btn-secondary" style="width:100%; font-size:0.8rem; padding:0.6rem;">
                    اتصال
                 </a>
             </div>
         `;
         container.appendChild(card);
     });
+    
+    console.log('[DEBUG] Finished rendering drivers');
 }
 
 // Order Placement Function - Improved Version
@@ -230,7 +243,7 @@ function placeOrder(driverId) {
             <button onclick="closeOrderModal()" style="position: absolute; top: 10px; left: 10px; background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer;">×</button>
             <h3 style="color: var(--accent); margin-bottom: 1rem; text-align: center;">طلب خدمة</h3>
             <form id="orderForm" style="margin-bottom: 1rem;">
-                <input type="hidden" id="driverId" value="${driverId}">
+                <input type="hidden" id="driverId" value="` + driverId + `">
                 <div class="form-group">
                     <label>الاسم الكامل</label>
                     <input type="text" id="customerName" class="form-control" required placeholder="أدخل اسمك الكامل">
