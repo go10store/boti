@@ -5,11 +5,11 @@ let currentOrders = [];
 // API Functions
 async function getDrivers() {
     try {
-        console.log('Fetching drivers...');
+        console.log('Fetching drivers from API...');
         const res = await fetch('/api/drivers');
-        console.log('Drivers response status:', res.status);
+        console.log('Drivers API response status:', res.status);
         const drivers = await res.json();
-        console.log('Loaded drivers:', drivers); // Debug info
+        console.log('Drivers data received:', JSON.stringify(drivers, null, 2));
         return drivers;
     } catch (err) {
         console.error('Failed to load drivers:', err);
@@ -132,10 +132,12 @@ async function requestAccountDeletion(driverId) {
 
 // UI Functions
 function renderDrivers(drivers, containerId) {
+    console.log('Rendering drivers:', drivers);
     const container = document.getElementById(containerId);
     container.innerHTML = '';
 
     if (drivers.length === 0) {
+        console.log('No drivers to display');
         container.innerHTML = `
             <div style="text-align:center; padding:2rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;">
                 <p style="color:var(--text-sub); font-size:1rem;">لا يوجد سائقين متاحين حالياً.</p>
@@ -145,6 +147,8 @@ function renderDrivers(drivers, containerId) {
         return;
     }
 
+    console.log('Displaying', drivers.length, 'drivers');
+    
     // Sort drivers by priority first, then by status
     drivers.sort((a, b) => {
         // First sort by priority (higher first)
