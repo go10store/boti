@@ -17,14 +17,16 @@
             <div class="logo">
                 <span style="color:var(--text-main)">تطبيق</span> بوطي
             </div>
-            <a href="dashboard.html" class="btn btn-primary">
+            <a href="register.html" class="btn btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     style="margin-left:8px">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
                 </svg>
-                إدارة حسابك
+                سجل شاحنتك
             </a>
         </div>
     </header>
@@ -37,22 +39,21 @@
                 ابحث عن أقرب شاحنة مياه (بوطي) من الخشة أو وادي زويا بكل سهولة
             </p>
 
-            <!-- Filter Tags (Scrollable) -->
-            <div class="filters-container slide-up" style="animation-delay: 0.2s;">
-                <button onclick="sortDrivers('DEFAULT')" class="filter-tag active">🔥 الكل</button>
-                <button onclick="sortDrivers('PRICE_ASC')" class="filter-tag">💰 الأرخص</button>
-                <button onclick="sortDrivers('PRICE_DESC')" class="filter-tag">💎 الأفضل</button>
-                <button onclick="filterByTime('MORNING')" class="filter-tag">☀️ صباحي</button>
-                <button onclick="filterByTime('EVENING')" class="filter-tag">🌙 مسائي</button>
-                <button onclick="filterByTime('ALWAYS')" class="filter-tag">🚀 24/7</button>
+            <div class="slide-up"
+                style="animation-delay: 0.2s; display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top:2rem;">
+                <button onclick="filterDrivers('KHASHA')" class="btn filter-btn">الخشة</button>
+                <button onclick="filterDrivers('WADI_ZOYA')" class="btn filter-btn">وادي زويا</button>
+                <button onclick="filterDrivers('ALL')" class="btn filter-btn active">الكل</button>
             </div>
         </div>
     </section>
 
     <main class="container">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-            <h2 style="font-size: 1.5rem;">سائقين متاحين الآن</h2>
-            <div class="pulse-dot"></div>
+            <h2 style="font-size: 1.5rem;">السائقين المتاحين</h2>
+            <div
+                style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);">
+            </div>
         </div>
 
         <div id="driver-grid" class="grid">
@@ -78,25 +79,17 @@
             renderDrivers(allDrivers, 'driver-grid');
         }
 
-        function sortDrivers(criteria) {
-            // Visual feedback
+        function filterDrivers(source) {
+            // Visual feedback for buttons
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            let sorted = [...allDrivers];
-
-            if (criteria === 'PRICE_ASC') {
-                sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-            } else if (criteria === 'PRICE_DESC') {
-                sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+            if (source === 'ALL') {
+                renderDrivers(allDrivers, 'driver-grid');
             } else {
-                // Default logic (backend already sorts by priority, so just re-render or keep as is)
-                // We trust backend sort for 'DEFAULT' but we need to account for OFF_DUTY at bottom
-                // The backend sorts by priority, but renderDrivers sorts by Status.
-                // Let renderDrivers handle the status sort.
+                const filtered = allDrivers.filter(d => d.source === source);
+                renderDrivers(filtered, 'driver-grid');
             }
-
-            renderDrivers(sorted, 'driver-grid');
         }
 
         init();
