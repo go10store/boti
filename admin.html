@@ -82,6 +82,7 @@
     <script>
         const API_URL = '/api'; // Relative in production
         let pendingOrdersCount = 0;
+        let ordersPollingInterval = null;
 
         async function adminLogin() {
             const pwd = document.getElementById('adminPass').value;
@@ -97,11 +98,21 @@
                 document.getElementById('admin-dash').style.display = 'block';
                 loadRequests();
                 loadOrders();
-                // Check for new orders periodically
-                setInterval(loadOrders, 30000); // Check every 30 seconds
+                // Start polling for new orders
+                startOrdersPolling();
             } else {
                 alert('كلمة السر خاطئة');
             }
+        }
+
+        function startOrdersPolling() {
+            // Clear any existing interval
+            if (ordersPollingInterval) {
+                clearInterval(ordersPollingInterval);
+            }
+            
+            // Check for new orders every 30 seconds
+            ordersPollingInterval = setInterval(loadOrders, 30000);
         }
 
         function showTab(tabName) {
@@ -128,54 +139,59 @@
         }
 
         async function loadRequests() {
-            const res = await fetch(`${API_URL}/admin/drivers`);
-            const drivers = await res.json();
-            const container = document.getElementById('requests-list');
-            container.innerHTML = '';
+            try {
+                const res = await fetch(`${API_URL}/admin/drivers`);
+                const drivers = await res.json();
+                const container = document.getElementById('requests-list');
+                container.innerHTML = '';
 
-            // Separate pending and deletion requests
-            const pending = drivers.filter(d => d.approvalStatus === 'PENDING');
-            const deletionRequests = drivers.filter(d => d.deletionRequested === true);
-            const others = drivers.filter(d => d.approvalStatus !== 'PENDING' && !d.deletionRequested);
+                // Separate pending and deletion requests
+                const pending = drivers.filter(d => d.approvalStatus === 'PENDING');
+                const deletionRequests = drivers.filter(d => d.deletionRequested === true);
+                const others = drivers.filter(d => d.approvalStatus !== 'PENDING' && !d.deletionRequested);
 
-            // Show Deletion Requests First
-            if (deletionRequests.length > 0) {
-                const deleteSection = document.createElement('div');
-                deleteSection.innerHTML = '<h2 style="color: var(--error); margin: 2rem 0 1rem;">طلبات الحذف ⚠️</h2>';
-                container.appendChild(deleteSection);
+                // Show Deletion Requests First
+                if (deletionRequests.length > 0) {
+                    const deleteSection = document.createElement('div');
+                    deleteSection.innerHTML = '<h2 style="color: var(--error); margin: 2rem 0 1rem;">طلبات الحذف ⚠️</h2>';
+                    container.appendChild(deleteSection);
 
-                deletionRequests.forEach(d => {
-                    const card = createDriverCard(d, true);
-                    container.appendChild(card);
-                });
-            }
+                    deletionRequests.forEach(d => {
+                        const card = createDriverCard(d, true);
+                        container.appendChild(card);
+                    });
+                }
 
-            // Show Pending Requests
-            if (pending.length > 0) {
-                const pendingSection = document.createElement('div');
-                pendingSection.innerHTML = '<h2 style="color: orange; margin: 2rem 0 1rem;">طلبات الانضمام الجديدة 📋</h2>';
-                container.appendChild(pendingSection);
+                // Show Pending Requests
+                if (pending.length > 0) {
+                    const pendingSection = document.createElement('div');
+                    pendingSection.innerHTML = '<h2 style="color: orange; margin: 2rem 0 1rem;">طلبات الانضمام الجديدة 📋</h2>';
+                    container.appendChild(pendingSection);
 
-                pending.forEach(d => {
-                    const card = createDriverCard(d, false);
-                    container.appendChild(card);
-                });
-            }
+                    pending.forEach(d => {
+                        const card = createDriverCard(d, false);
+                        container.appendChild(card);
+                    });
+                }
 
-            // Show Others (Approved/Rejected)
-            if (others.length > 0) {
-                const othersSection = document.createElement('div');
-                othersSection.innerHTML = '<h2 style="color: var(--text-sub); margin: 2rem 0 1rem;">السجل 📁</h2>';
-                container.appendChild(othersSection);
+                // Show Others (Approved/Rejected)
+                if (others.length > 0) {
+                    const othersSection = document.createElement('div');
+                    othersSection.innerHTML = '<h2 style="color: var(--text-sub); margin: 2rem 0 1rem;">السجل 📁</h2>';
+                    container.appendChild(othersSection);
 
-                others.forEach(d => {
-                    const card = createDriverCard(d, false);
-                    container.appendChild(card);
-                });
-            }
+                    others.forEach(d => {
+                        const card = createDriverCard(d, false);
+                        container.appendChild(card);
+                    });
+                }
 
-            if (drivers.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color: var(--text-sub);">لا توجد طلبات حالياً</p>';
+                if (drivers.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color: var(--text-sub);">لا توجد طلبات حالياً</p>';
+                }
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                document.getElementById('requests-list').innerHTML = '<p style="text-align:center; color: red;">خطأ في تحميل البيانات</p>';
             }
         }
 
@@ -222,51 +238,56 @@
         }
 
         async function loadOrders() {
-            const res = await fetch(`${API_URL}/orders`);
-            const orders = await res.json();
-            const container = document.getElementById('orders-list');
-            container.innerHTML = '';
+            try {
+                const res = await fetch(`${API_URL}/orders`);
+                const orders = await res.json();
+                const container = document.getElementById('orders-list');
+                container.innerHTML = '';
 
-            // Separate pending orders
-            const pendingOrders = orders.filter(order => order.status === 'PENDING');
-            const completedOrders = orders.filter(order => order.status !== 'PENDING');
+                // Separate pending orders
+                const pendingOrders = orders.filter(order => order.status === 'PENDING');
+                const completedOrders = orders.filter(order => order.status !== 'PENDING');
 
-            // Update notification badge
-            pendingOrdersCount = pendingOrders.length;
-            const notificationBadge = document.getElementById('order-notification');
-            if (pendingOrdersCount > 0) {
-                notificationBadge.textContent = pendingOrdersCount;
-                notificationBadge.style.display = 'flex';
-            } else {
-                notificationBadge.style.display = 'none';
-            }
+                // Update notification badge
+                pendingOrdersCount = pendingOrders.length;
+                const notificationBadge = document.getElementById('order-notification');
+                if (pendingOrdersCount > 0) {
+                    notificationBadge.textContent = pendingOrdersCount;
+                    notificationBadge.style.display = 'flex';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
 
-            // Show Pending Orders
-            if (pendingOrders.length > 0) {
-                const pendingSection = document.createElement('div');
-                pendingSection.innerHTML = '<h2 style="color: orange; margin: 2rem 0 1rem;">الطلبات الجديدة 📋</h2>';
-                container.appendChild(pendingSection);
+                // Show Pending Orders
+                if (pendingOrders.length > 0) {
+                    const pendingSection = document.createElement('div');
+                    pendingSection.innerHTML = '<h2 style="color: orange; margin: 2rem 0 1rem;">الطلبات الجديدة 📋</h2>';
+                    container.appendChild(pendingSection);
 
-                pendingOrders.forEach(order => {
-                    const card = createOrderCard(order);
-                    container.appendChild(card);
-                });
-            }
+                    pendingOrders.forEach(order => {
+                        const card = createOrderCard(order);
+                        container.appendChild(card);
+                    });
+                }
 
-            // Show Completed Orders
-            if (completedOrders.length > 0) {
-                const completedSection = document.createElement('div');
-                completedSection.innerHTML = '<h2 style="color: var(--text-sub); margin: 2rem 0 1rem;">الطلبات السابقة 📁</h2>';
-                container.appendChild(completedSection);
+                // Show Completed Orders
+                if (completedOrders.length > 0) {
+                    const completedSection = document.createElement('div');
+                    completedSection.innerHTML = '<h2 style="color: var(--text-sub); margin: 2rem 0 1rem;">الطلبات السابقة 📁</h2>';
+                    container.appendChild(completedSection);
 
-                completedOrders.forEach(order => {
-                    const card = createOrderCard(order);
-                    container.appendChild(card);
-                });
-            }
+                    completedOrders.forEach(order => {
+                        const card = createOrderCard(order);
+                        container.appendChild(card);
+                    });
+                }
 
-            if (orders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color: var(--text-sub);">لا توجد طلبات حالياً</p>';
+                if (orders.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color: var(--text-sub);">لا توجد طلبات حالياً</p>';
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-list').innerHTML = '<p style="text-align:center; color: red;">خطأ في تحميل الطلبات</p>';
             }
         }
 
@@ -303,52 +324,72 @@
             const message = prompt(`أدخل رسالة الرد:`);
             if (message === null) return; // User cancelled
 
-            const res = await fetch(`${API_URL}/respond-order`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId, response, message })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch(`${API_URL}/respond-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, response, message })
+                });
+                const data = await res.json();
 
-            if (data.success) {
-                alert('تم تحديث حالة الطلب');
-                loadOrders();
-            } else {
-                alert('فشل تحديث الطلب: ' + data.message);
+                if (data.success) {
+                    alert('تم تحديث حالة الطلب');
+                    loadOrders();
+                } else {
+                    alert('فشل تحديث الطلب: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error responding to order:', error);
+                alert('فشل الاتصال بالخادم');
             }
         }
 
         async function decide(id, action, priority) {
             if (!confirm('هل أنت متأكد؟')) return;
 
-            await fetch(`${API_URL}/admin/approve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, action, priority })
-            });
-            loadRequests();
+            try {
+                await fetch(`${API_URL}/admin/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action, priority })
+                });
+                loadRequests();
+            } catch (error) {
+                console.error('Error approving driver:', error);
+                alert('فشل الاتصال بالخادم');
+            }
         }
 
         async function permanentDelete(id) {
             if (!confirm('هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع عن هذا الإجراء!')) return;
 
-            await fetch(`${API_URL}/admin/delete`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            loadRequests();
+            try {
+                await fetch(`${API_URL}/admin/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadRequests();
+            } catch (error) {
+                console.error('Error deleting driver:', error);
+                alert('فشل الاتصال بالخادم');
+            }
         }
 
         async function setPriority(id, priority) {
             if (!confirm('هل أنت متأكد من تغيير الأولوية؟')) return;
 
-            await fetch(`${API_URL}/admin/priority`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, priority })
-            });
-            loadRequests();
+            try {
+                await fetch(`${API_URL}/admin/priority`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, priority })
+                });
+                loadRequests();
+            } catch (error) {
+                console.error('Error setting priority:', error);
+                alert('فشل الاتصال بالخادم');
+            }
         }
     </script>
 </body>
