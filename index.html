@@ -81,12 +81,15 @@
         let allDrivers = [];
 
         async function init() {
+            console.log('Initializing page...');
             allDrivers = await getDrivers();
+            console.log('All drivers loaded:', allDrivers);
             renderDrivers(allDrivers, 'driver-grid');
         }
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
             init();
         });
     </script>
