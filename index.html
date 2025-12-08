@@ -86,7 +86,9 @@
         }
 
         // Initialize the page
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+        });
     </script>
 </body>
 
