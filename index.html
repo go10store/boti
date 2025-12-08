@@ -17,17 +17,6 @@
             <div class="logo">
                 <span style="color:var(--text-main)">تطبيق</span> بوطي
             </div>
-            <a href="register.html" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    style="margin-left:8px">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="23" y1="11" x2="17" y2="11"></line>
-                </svg>
-                سجل شاحنتك
-            </a>
         </div>
     </header>
 
@@ -38,29 +27,64 @@
                 style="animation-delay: 0.1s; color: var(--text-sub); margin-bottom: 2rem; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;">
                 ابحث عن أقرب شاحنة مياه (بوطي) من الخشة أو وادي زويا بكل سهولة
             </p>
-
-            <div class="slide-up"
-                style="animation-delay: 0.2s; display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top:2rem;">
-                <button onclick="filterDrivers('KHASHA')" class="btn filter-btn">الخشة</button>
-                <button onclick="filterDrivers('WADI_ZOYA')" class="btn filter-btn">وادي زويا</button>
-                <button onclick="filterDrivers('ALL')" class="btn filter-btn active">الكل</button>
-            </div>
         </div>
     </section>
 
     <main class="container">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-            <h2 style="font-size: 1.5rem;">السائقين المتاحين</h2>
-            <div
-                style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);">
+        <!-- Two Column Layout -->
+        <div class="two-column-layout">
+            <!-- Left Column - Driver Actions -->
+            <div class="left-column">
+                <div class="card slide-up" style="animation-delay: 0.2s;">
+                    <h2 style="color: var(--accent); margin-bottom: 1.5rem; text-align: center;">للسائقين</h2>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <a href="dashboard.html" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                                <line x1="20" y1="8" x2="20" y2="14"></line>
+                                <line x1="23" y1="11" x2="17" y2="11"></line>
+                            </svg>
+                            تسجيل الدخول
+                        </a>
+                        
+                        <a href="register.html" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                                <line x1="20" y1="8" x2="20" y2="14"></line>
+                                <line x1="23" y1="11" x2="17" y2="11"></line>
+                            </svg>
+                            إنشاء حساب جديد
+                        </a>
+                        
+                        <div style="background: rgba(212, 175, 55, 0.1); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                            <h3 style="color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem;">إدارة حسابك</h3>
+                            <p style="color: var(--text-sub); font-size: 0.9rem; margin: 0;">
+                                قم بتسجيل شاحنتك وإدارة معلوماتك وتحديث حالتك لتظهر للعملاء
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div id="driver-grid" class="grid">
-            <!-- Skeleton Loading State -->
-            <div class="skeleton sk-card"></div>
-            <div class="skeleton sk-card" style="animation-delay: 0.1s"></div>
-            <div class="skeleton sk-card" style="animation-delay: 0.2s"></div>
+            <!-- Right Column - Available Drivers -->
+            <div class="right-column">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.5rem;">السائقين المتاحين</h2>
+                    <div
+                        style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);">
+                    </div>
+                </div>
+
+                <div id="driver-grid" class="grid">
+                    <!-- Skeleton Loading State -->
+                    <div class="skeleton sk-card"></div>
+                    <div class="skeleton sk-card" style="animation-delay: 0.1s"></div>
+                    <div class="skeleton sk-card" style="animation-delay: 0.2s"></div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -77,19 +101,6 @@
         async function init() {
             allDrivers = await getDrivers();
             renderDrivers(allDrivers, 'driver-grid');
-        }
-
-        function filterDrivers(source) {
-            // Visual feedback for buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            if (source === 'ALL') {
-                renderDrivers(allDrivers, 'driver-grid');
-            } else {
-                const filtered = allDrivers.filter(d => d.source === source);
-                renderDrivers(filtered, 'driver-grid');
-            }
         }
 
         init();
