@@ -1,177 +1,27 @@
-/* 
-  تطبيق بوطي - Boti App Logic
-  Developed by Alkow Software
-*/
+// Global State Management
+let allDrivers = [];
+let currentOrders = [];
 
-const ICONS = {
-    phone: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
-    location: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
-    water: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>',
-    check: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-    error: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
-    info: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
-    whatsapp: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>'
-};
-
-const API_URL = '/api'; // Use relative path so it works on localhost & Railway
-
-// Enhanced Driver Authentication with Session Storage
+// API Functions
 async function getDrivers() {
     try {
-        const res = await fetch(`${API_URL}/drivers`);
+        const res = await fetch('/api/drivers');
         return await res.json();
-    } catch (e) {
-        console.error("Error fetching drivers", e);
+    } catch (err) {
+        console.error('Failed to load drivers:', err);
+        showNotification('فشل تحميل السائقين', 'error');
         return [];
     }
 }
 
-async function addDriver(driver) {
+async function getOrders() {
     try {
-        const res = await fetch(`${API_URL}/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(driver)
-        });
-
-        const data = await res.json();
-        return data; // Return full response object with success and message
-    } catch (e) {
-        console.error("Error saving", e);
-        return { success: false, message: 'حدث خطأ في الاتصال' };
+        const res = await fetch('/api/orders');
+        return await res.json();
+    } catch (err) {
+        console.error('Failed to load orders:', err);
+        return [];
     }
-}
-
-// Enhanced Login with Better Error Handling
-async function loginDriver(phone, password) {
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            // Store driver session
-            sessionStorage.setItem('currentDriver', JSON.stringify(data.driver));
-            return data.driver;
-        }
-        return null;
-    } catch (e) { 
-        console.error("Login error", e);
-        return null; 
-    }
-}
-
-// Check for existing session
-function getCurrentDriver() {
-    const driverData = sessionStorage.getItem('currentDriver');
-    return driverData ? JSON.parse(driverData) : null;
-}
-
-// Clear session on logout
-function clearDriverSession() {
-    sessionStorage.removeItem('currentDriver');
-}
-
-async function updateDriverStatus(id, newStatus) {
-    try {
-        const res = await fetch(`${API_URL}/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status: newStatus })
-        });
-        const data = await res.json();
-        return data.success;
-    } catch (e) { return false; }
-}
-
-// Update Driver Profile Function
-async function updateDriverProfile(driverId, updates) {
-    try {
-        const res = await fetch(`${API_URL}/profile`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: driverId, ...updates })
-        });
-        const data = await res.json();
-        return data.success;
-    } catch (e) {
-        return false;
-    }
-}
-
-// Delete Request Function
-async function requestAccountDeletion(driverId) {
-    try {
-        const res = await fetch(`${API_URL}/driver/delete-request`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: driverId })
-        });
-        const data = await res.json();
-        return data;
-    } catch (e) {
-        return { success: false, message: 'حدث خطأ في الاتصال' };
-    }
-}
-
-// Notification System
-function showNotification(message, type = 'info') {
-    const container = document.getElementById('toast-container') || createToastContainer();
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-
-    let icon = '';
-    if (type === 'success') {
-        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-        toast.style.borderRight = '4px solid #2ec4b6';
-    } else if (type === 'error') {
-        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-        toast.style.borderRight = '4px solid #e71d36';
-    } else {
-        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
-        toast.style.borderRight = '4px solid var(--accent)';
-    }
-
-    toast.innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
-            <span style="color: ${type === 'success' ? '#2ec4b6' : type === 'error' ? '#e71d36' : 'var(--accent)'}">${icon}</span>
-            <span style="font-weight:600;">${message}</span>
-        </div>
-    `;
-
-    container.appendChild(toast);
-
-    // Add entrance animation
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    }, 10);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function createToastContainer() {
-    const el = document.createElement('div');
-    el.id = 'toast-container';
-    el.style.position = 'fixed';
-    el.style.bottom = '30px';
-    el.style.left = '50%';
-    el.style.transform = 'translateX(-50%)';
-    el.style.zIndex = '1000';
-    el.style.width = '90%';
-    el.style.maxWidth = '400px';
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.gap = '10px';
-    document.body.appendChild(el);
-    return el;
 }
 
 // UI Functions
@@ -235,8 +85,14 @@ function renderDrivers(drivers, containerId) {
     });
 }
 
-// Order Placement Function
+// Order Placement Function - Improved Version
 function placeOrder(driverId) {
+    // Remove any existing modal first
+    const existingModal = document.getElementById('orderModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
     // Create modal for order placement
     const modal = document.createElement('div');
     modal.id = 'orderModal';
@@ -255,7 +111,8 @@ function placeOrder(driverId) {
     `;
     
     modal.innerHTML = `
-        <div class="driver-card" style="width: 90%; max-width: 400px; margin: 0; animation: slideUp 0.3s ease-out;">
+        <div class="driver-card" style="width: 90%; max-width: 400px; margin: 0; animation: slideUp 0.3s ease-out; position: relative;">
+            <button onclick="closeOrderModal()" style="position: absolute; top: 10px; left: 10px; background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer;">×</button>
             <h3 style="color: var(--accent); margin-bottom: 1rem; text-align: center;">طلب خدمة</h3>
             <form id="orderForm" style="margin-bottom: 1rem;">
                 <input type="hidden" id="driverId" value="${driverId}">
@@ -282,50 +139,64 @@ function placeOrder(driverId) {
     document.body.appendChild(modal);
     
     // Handle form submission
-    document.getElementById('orderForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const driverId = document.getElementById('driverId').value;
-        const customerName = document.getElementById('customerName').value;
-        const customerPhone = document.getElementById('customerPhone').value;
-        const orderNotes = document.getElementById('orderNotes').value;
-        
-        // Validate phone number
-        if (!customerPhone.match(/^09[0-9]{8}$/)) {
-            showNotification('رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)', 'error');
-            return;
-        }
-        
-        // Submit order
-        const orderData = {
-            driverId,
-            customerName,
-            customerPhone,
-            notes: orderNotes,
-            timestamp: new Date().toISOString()
-        };
-        
-        try {
-            const response = await fetch('/api/place-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
+    const orderForm = document.getElementById('orderForm');
+    if (orderForm) {
+        orderForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            const result = await response.json();
+            const submitBtn = orderForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = 'جاري الإرسال...';
+            submitBtn.disabled = true;
             
-            if (result.success) {
-                showNotification('تم إرسال الطلب بنجاح!', 'success');
-                closeOrderModal();
-            } else {
-                showNotification('حدث خطأ أثناء إرسال الطلب', 'error');
+            try {
+                const driverId = document.getElementById('driverId').value;
+                const customerName = document.getElementById('customerName').value;
+                const customerPhone = document.getElementById('customerPhone').value;
+                const orderNotes = document.getElementById('orderNotes').value;
+                
+                // Validate phone number
+                if (!customerPhone.match(/^09[0-9]{8}$/)) {
+                    showNotification('رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Submit order
+                const orderData = {
+                    driverId,
+                    customerName,
+                    customerPhone,
+                    notes: orderNotes,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch('/api/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('تم إرسال الطلب بنجاح!', 'success');
+                    closeOrderModal();
+                } else {
+                    showNotification(result.message || 'حدث خطأ أثناء إرسال الطلب', 'error');
+                }
+            } catch (error) {
+                showNotification('فشل الاتصال بالخادم', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
-        } catch (error) {
-            showNotification('فشل الاتصال بالخادم', 'error');
-        }
-    });
+        });
+    }
 }
 
 // Close order modal
@@ -335,3 +206,30 @@ function closeOrderModal() {
         modal.remove();
     }
 }
+
+// Notification System
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+// Prevent background scrolling when modal is open
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeOrderModal();
+    }
+});
