@@ -9,10 +9,14 @@ from datetime import datetime
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# Env Vars (Set these in Railway)
+# Env Vars (Set these in Railway or your environment)
 BIN_ID = os.environ.get("JSONBIN_ID", "675494d6ad19ca34f8d5f306") 
 API_KEY = os.environ.get("JSONBIN_KEY", "$2a$10$wK1y/wQo/uX.T/Q.q/Q.qO")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "admin123")
+
+# Orders BIN Configuration
+ORDERS_BIN_ID = os.environ.get("ORDERS_JSONBIN_ID", "")
+ORDERS_API_KEY = os.environ.get("ORDERS_JSONBIN_KEY", "")
 
 # JSONBin Helpers
 def get_db():
@@ -23,7 +27,8 @@ def get_db():
         if resp.status_code == 200:
             return resp.json().get('record', [])
         return []
-    except:
+    except Exception as e:
+        print(f"Error getting drivers DB: {e}")
         return []
 
 def save_db(data):
@@ -33,9 +38,48 @@ def save_db(data):
             'Content-Type': 'application/json',
             'X-Master-Key': API_KEY
         }
-        requests.put(url, json=data, headers=headers)
+        response = requests.put(url, json=data, headers=headers)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error saving drivers DB: {e}")
+        return False
+
+# Orders JSONBin Helpers
+def get_orders_db():
+    # If no orders BIN is configured, fallback to in-memory
+    if not ORDERS_BIN_ID or not ORDERS_API_KEY:
+        print("Warning: Orders BIN not configured, using in-memory storage")
+        if not hasattr(get_orders_db, 'orders_cache'):
+            get_orders_db.orders_cache = []
+        return get_orders_db.orders_cache
+    
+    try:
+        url = f"https://api.jsonbin.io/v3/b/{ORDERS_BIN_ID}/latest"
+        headers = {'X-Master-Key': ORDERS_API_KEY}
+        resp = requests.get(url, headers=headers)
+        if resp.status_code == 200:
+            return resp.json().get('record', [])
+        return []
+    except Exception as e:
+        print(f"Error getting orders DB: {e}")
+        return []
+
+def save_orders_db(data):
+    # If no orders BIN is configured, fallback to in-memory
+    if not ORDERS_BIN_ID or not ORDERS_API_KEY:
+        get_orders_db.orders_cache = data
         return True
-    except:
+    
+    try:
+        url = f"https://api.jsonbin.io/v3/b/{ORDERS_BIN_ID}"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Master-Key': ORDERS_API_KEY
+        }
+        response = requests.put(url, json=data, headers=headers)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error saving orders DB: {e}")
         return False
 
 # Routes
@@ -246,7 +290,6 @@ orders = []
 # API: Place Order
 @app.route('/api/place-order', methods=['POST'])
 def place_order():
-    global orders
     data = request.json
     
     # Validate required fields
@@ -257,6 +300,9 @@ def place_order():
     phone = data.get('customerPhone', '').strip()
     if not (phone.startswith('09') and len(phone) == 10 and phone.isdigit()):
         return jsonify({"success": False, "message": "رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)"}), 400
+    
+    # Get existing orders
+    orders = get_orders_db()
     
     # Create order
     order = {
@@ -271,28 +317,34 @@ def place_order():
     }
     
     orders.append(order)
+    save_orders_db(orders)
     
     return jsonify({"success": True, "message": "تم إرسال الطلب بنجاح"}), 201
 
 # API: Get Orders (for admin)
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
-    global orders
+    orders = get_orders_db()
     return jsonify(orders)
 
 # API: Respond to Order
 @app.route('/api/respond-order', methods=['POST'])
 def respond_order():
-    global orders
     data = request.json
     order_id = data.get('orderId')
     response = data.get('response')  # APPROVE or REJECT
     message = data.get('message', '')
     
+    # Get existing orders
+    orders = get_orders_db()
+    
     for order in orders:
         if order['id'] == order_id:
             order['status'] = 'APPROVED' if response == 'APPROVE' else 'REJECTED'
             order['response'] = message
+            
+            # Save updated orders
+            save_orders_db(orders)
             
             # In a real application, we would send an SMS or push notification to the customer
             # For this demo, we'll just log the action
