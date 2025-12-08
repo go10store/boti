@@ -71,6 +71,14 @@
                     <small style="color: var(--text-sub); font-size: 0.85rem;">يمكن تعديله لاحقاً من لوحة التحكم</small>
                 </div>
 
+                <div style="background: rgba(217, 164, 65, 0.1); border-radius: 12px; padding: 1rem; margin: 1.5rem 0;">
+                    <p style="color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">ملاحظة مهمة:</p>
+                    <p style="color: var(--text-sub); font-size: 0.9rem; margin: 0;">
+                        بعد التسجيل، سيتم مراجعة حسابك من قبل الإدارة. 
+                        سيظهر حسابك في الصفحة الرئيسية بعد الموافقة عليه.
+                    </p>
+                </div>
+
                 <button type="submit" class="btn btn-primary" style="width:100%">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -146,7 +154,7 @@
             const result = await addDriver(data);
 
             if (result.success) {
-                showNotification(result.message || 'تم تسجيل حسابك بنجاح!', 'success');
+                showNotification(result.message || 'تم تسجيل حسابك بنجاح! سيتم مراجعته من قبل الإدارة.', 'success');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1500);
