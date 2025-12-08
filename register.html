@@ -60,45 +60,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label>نوع الشاحنة</label>
-                    <input type="text" name="truckType" class="form-control" required
-                        placeholder="مثال: هينو، ميتسوبيشي">
+                    <label>تأكيد كلمة المرور</label>
+                    <input type="password" name="confirmPassword" class="form-control" required
+                        placeholder="أدخل كلمة المرور مرة أخرى">
                 </div>
 
                 <div class="form-group">
-                    <label>سعة الشاحنة (لتر)</label>
-                    <input type="number" name="capacity" class="form-control" required placeholder="مثال: 5000">
-                </div>
-
-                <div class="form-group">
-                    <label>أوقات العمل</label>
-                    <input type="text" name="workHours" class="form-control" required
-                        placeholder="مثال: 8 صباحاً - 8 مساءً">
-                </div>
-
-                <div class="form-group">
-                    <label>مصدر المياه</label>
-                    <select name="source" class="form-control">
-                        <option value="KHASHA">الخشة</option>
-                        <option value="WADI_ZOYA">وادي زويا</option>
-                        <option value="OTHER">مصدر آخر</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>الموقع / التمركز</label>
-                    <input type="text" name="location" class="form-control" required
-                        placeholder="مثال: وسط البلاد، حي الجهاد">
-                </div>
-
-                <div class="form-group">
-                    <label>السعر (دينار ليبي)</label>
+                    <label>السعر التقريبي (دينار ليبي)</label>
                     <input type="number" name="price" class="form-control" required placeholder="مثال: 50">
-                </div>
-
-                <div class="form-group">
-                    <label>ملاحظات إضافية (اختياري)</label>
-                    <textarea name="bio" class="form-control" rows="3" placeholder="أي معلومات إضافية..."></textarea>
+                    <small style="color: var(--text-sub); font-size: 0.85rem;">يمكن تعديله لاحقاً من لوحة التحكم</small>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width:100%">
@@ -136,6 +106,15 @@
 
         document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Validate password confirmation
+            const password = e.target.password.value;
+            const confirmPassword = e.target.confirmPassword.value;
+            if (password !== confirmPassword) {
+                showNotification('كلمات المرور غير متطابقة', 'error');
+                return;
+            }
+            
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
 
@@ -160,6 +139,9 @@
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
+            
+            // Remove confirmPassword from data sent to server
+            delete data.confirmPassword;
 
             const result = await addDriver(data);
 
