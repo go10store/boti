@@ -123,18 +123,32 @@ function showNotification(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
 
-    let icon = ICONS.info;
-    if (type === 'success') icon = ICONS.check;
-    if (type === 'error') icon = ICONS.error;
+    let icon = '';
+    if (type === 'success') {
+        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        toast.style.borderRight = '4px solid #2ec4b6';
+    } else if (type === 'error') {
+        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        toast.style.borderRight = '4px solid #e71d36';
+    } else {
+        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+        toast.style.borderRight = '4px solid var(--accent)';
+    }
 
     toast.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
-            <span class="icon-box">${icon}</span>
+            <span style="color: ${type === 'success' ? '#2ec4b6' : type === 'error' ? '#e71d36' : 'var(--accent)'}">${icon}</span>
             <span style="font-weight:600;">${message}</span>
         </div>
     `;
 
     container.appendChild(toast);
+
+    // Add entrance animation
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
 
     setTimeout(() => {
         toast.style.opacity = '0';
@@ -146,6 +160,16 @@ function showNotification(message, type = 'info') {
 function createToastContainer() {
     const el = document.createElement('div');
     el.id = 'toast-container';
+    el.style.position = 'fixed';
+    el.style.bottom = '30px';
+    el.style.left = '50%';
+    el.style.transform = 'translateX(-50%)';
+    el.style.zIndex = '1000';
+    el.style.width = '90%';
+    el.style.maxWidth = '400px';
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+    el.style.gap = '10px';
     document.body.appendChild(el);
     return el;
 }
@@ -175,7 +199,7 @@ function renderDrivers(drivers, containerId) {
         const status = driver.workStatus || 'AVAILABLE'; // Default
 
         const card = document.createElement('div');
-        card.className = `card ${status === 'BUSY' ? 'card-busy' : ''}`;
+        card.className = `driver-card ${status === 'BUSY' ? 'card-busy' : ''}`;
         card.style.animationDelay = `${index * 0.1}s`;
 
         // Status Badge Logic
@@ -189,24 +213,25 @@ function renderDrivers(drivers, containerId) {
 
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
-                <h3 style="color:var(--text-main); font-size:1.3rem;">${driver.name}</h3>
+                <h3 style="color:var(--text-main); font-size:1.2rem;">${driver.name}</h3>
                 <span class="price-tag">${driver.price} د.ل</span>
             </div>
             
             <div style="margin-bottom: 1rem;">${statusBadge}</div>
 
-            <div style="color: var(--text-sub); margin-bottom:1.2rem; font-size:0.95rem; line-height:1.6;">
+            <div style="color: var(--text-sub); margin-bottom:1rem; font-size:0.9rem; line-height:1.5;">
                 <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.3rem;">
-                    ${ICONS.phone} <span>${driver.phone}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    <span>${driver.phone}</span>
                 </div>
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
-                <a href="tel:${driver.phone}" onclick="showNotification('جارٍ الاتصال...', 'info')" class="btn btn-primary" style="width:100%; font-size:0.9rem; padding:0.8rem;">
-                   ${ICONS.phone} اتصل
+                <a href="tel:${driver.phone}" onclick="showNotification('جارٍ الاتصال...', 'info')" class="btn btn-primary" style="width:100%; font-size:0.85rem; padding:0.7rem;">
+                   اتصال
                 </a>
-                <a href="${waLink}" target="_blank" class="btn btn-secondary" style="width:100%; font-size:0.9rem; padding:0.8rem;">
-                   ${ICONS.whatsapp} الموقع
+                <a href="${waLink}" target="_blank" class="btn btn-secondary" style="width:100%; font-size:0.85rem; padding:0.7rem;">
+                   موقع
                 </a>
             </div>
         `;
