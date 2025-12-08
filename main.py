@@ -239,6 +239,69 @@ def delete_driver():
     
     return jsonify({"success": True})
 
+
+# In-memory storage for orders (in production, this should be in a database)
+orders = []
+
+# API: Place Order
+@app.route('/api/place-order', methods=['POST'])
+def place_order():
+    global orders
+    data = request.json
+    
+    # Validate required fields
+    if not all(k in data for k in ('driverId', 'customerName', 'customerPhone')):
+        return jsonify({"success": False, "message": "جميع الحقول مطلوبة"}), 400
+    
+    # Validate phone number
+    phone = data.get('customerPhone', '').strip()
+    if not (phone.startswith('09') and len(phone) == 10 and phone.isdigit()):
+        return jsonify({"success": False, "message": "رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)"}), 400
+    
+    # Create order
+    order = {
+        "id": str(uuid.uuid4()),
+        "driverId": data.get('driverId'),
+        "customerName": data.get('customerName'),
+        "customerPhone": phone,
+        "notes": data.get('notes', ''),
+        "timestamp": data.get('timestamp'),
+        "status": "PENDING",  # PENDING, APPROVED, REJECTED
+        "response": ""
+    }
+    
+    orders.append(order)
+    
+    return jsonify({"success": True, "message": "تم إرسال الطلب بنجاح"}), 201
+
+# API: Get Orders (for admin)
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    global orders
+    return jsonify(orders)
+
+# API: Respond to Order
+@app.route('/api/respond-order', methods=['POST'])
+def respond_order():
+    global orders
+    data = request.json
+    order_id = data.get('orderId')
+    response = data.get('response')  # APPROVE or REJECT
+    message = data.get('message', '')
+    
+    for order in orders:
+        if order['id'] == order_id:
+            order['status'] = 'APPROVED' if response == 'APPROVE' else 'REJECTED'
+            order['response'] = message
+            
+            # In a real application, we would send an SMS or push notification to the customer
+            # For this demo, we'll just log the action
+            print(f"Order {order_id} {order['status']} with message: {message}")
+            
+            return jsonify({"success": True, "message": "تم تحديث حالة الطلب"})
+    
+    return jsonify({"success": False, "message": "الطلب غير موجود"}), 404
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
 
