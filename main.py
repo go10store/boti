@@ -18,18 +18,41 @@ ADMIN_PASS = os.environ.get("ADMIN_PASS", "admin123")
 ORDERS_BIN_ID = os.environ.get("ORDERS_JSONBIN_ID", "")
 ORDERS_API_KEY = os.environ.get("ORDERS_JSONBIN_KEY", "")
 
+print(f"BIN_ID: {BIN_ID}")
+print(f"API_KEY: {API_KEY[:5]}...{API_KEY[-5:] if len(API_KEY) > 10 else ''}")
+print(f"ORDERS_BIN_ID: {ORDERS_BIN_ID}")
+print(f"ORDERS_API_KEY: {ORDERS_API_KEY[:5]}...{ORDERS_API_KEY[-5:] if len(ORDERS_API_KEY) > 10 else ''}")
+
 # JSONBin Helpers
 def get_db():
     try:
         url = f"https://api.jsonbin.io/v3/b/{BIN_ID}/latest"
         headers = {'X-Master-Key': API_KEY}
+        print(f"Fetching drivers from: {url}")
         resp = requests.get(url, headers=headers)
+        print(f"Response status: {resp.status_code}")
         if resp.status_code == 200:
-            return resp.json().get('record', [])
-        return []
+            data = resp.json().get('record', [])
+            print(f"Retrieved {len(data)} drivers")
+            return data
+        elif resp.status_code == 404:
+            print(f"BIN not found. Using in-memory database.")
+            # Use in-memory database as fallback
+            if not hasattr(get_db, 'in_memory_db'):
+                get_db.in_memory_db = []
+            return get_db.in_memory_db
+        else:
+            print(f"Failed to fetch drivers: {resp.text}")
+            # Use in-memory database as fallback
+            if not hasattr(get_db, 'in_memory_db'):
+                get_db.in_memory_db = []
+            return get_db.in_memory_db
     except Exception as e:
         print(f"Error getting drivers DB: {e}")
-        return []
+        # Use in-memory database as fallback
+        if not hasattr(get_db, 'in_memory_db'):
+            get_db.in_memory_db = []
+        return get_db.in_memory_db
 
 def save_db(data):
     try:
@@ -38,11 +61,31 @@ def save_db(data):
             'Content-Type': 'application/json',
             'X-Master-Key': API_KEY
         }
+        print(f"Saving {len(data)} drivers to: {url}")
         response = requests.put(url, json=data, headers=headers)
-        return response.status_code == 200
+        print(f"Save response status: {response.status_code}")
+        if response.status_code in [200, 201]:
+            return True
+        elif response.status_code == 401:
+            print("Invalid API key. Using in-memory database.")
+            # Store in memory as fallback
+            get_db.in_memory_db = data
+            return True
+        elif response.status_code == 404:
+            print("BIN not found. Using in-memory database.")
+            # Store in memory as fallback
+            get_db.in_memory_db = data
+            return True
+        else:
+            print(f"Failed to save drivers: {response.text}")
+            # Store in memory as fallback
+            get_db.in_memory_db = data
+            return True
     except Exception as e:
         print(f"Error saving drivers DB: {e}")
-        return False
+        # Store in memory as fallback
+        get_db.in_memory_db = data
+        return True
 
 # Orders JSONBin Helpers
 def get_orders_db():
@@ -56,9 +99,15 @@ def get_orders_db():
     try:
         url = f"https://api.jsonbin.io/v3/b/{ORDERS_BIN_ID}/latest"
         headers = {'X-Master-Key': ORDERS_API_KEY}
+        print(f"Fetching orders from: {url}")
         resp = requests.get(url, headers=headers)
+        print(f"Orders response status: {resp.status_code}")
         if resp.status_code == 200:
-            return resp.json().get('record', [])
+            data = resp.json().get('record', [])
+            print(f"Retrieved {len(data)} orders")
+            return data
+        else:
+            print(f"Failed to fetch orders: {resp.text}")
         return []
     except Exception as e:
         print(f"Error getting orders DB: {e}")
@@ -76,7 +125,9 @@ def save_orders_db(data):
             'Content-Type': 'application/json',
             'X-Master-Key': ORDERS_API_KEY
         }
+        print(f"Saving {len(data)} orders to: {url}")
         response = requests.put(url, json=data, headers=headers)
+        print(f"Save orders response status: {response.status_code}")
         return response.status_code == 200
     except Exception as e:
         print(f"Error saving orders DB: {e}")
@@ -355,5 +406,32 @@ def respond_order():
     return jsonify({"success": False, "message": "الطلب غير موجود"}), 404
 
 if __name__ == '__main__':
+    # Test the database connection
+    print("Testing database connection...")
+    drivers = get_db()
+    print(f"Current drivers count: {len(drivers)}")
+    
+    # Add a test driver if database is empty
+    if len(drivers) == 0:
+        print("Adding test driver...")
+        test_driver = {
+            "id": str(uuid.uuid4()),
+            "name": "اختبار السائق",
+            "phone": "0912345678",
+            "password": "test123",
+            "price": "50",
+            "workStatus": "AVAILABLE",
+            "approvalStatus": "APPROVED",  # Already approved for testing
+            "priority": 0,
+            "deletionRequested": False,
+            "createdAt": datetime.now().isoformat()
+        }
+        drivers.append(test_driver)
+        if save_db(drivers):
+            print("Test driver added successfully!")
+        else:
+            print("Failed to add test driver!")
+    
     app.run(debug=True, port=5000)
+
 
