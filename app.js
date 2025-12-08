@@ -6,7 +6,9 @@ let currentOrders = [];
 async function getDrivers() {
     try {
         const res = await fetch('/api/drivers');
-        return await res.json();
+        const drivers = await res.json();
+        console.log('Loaded drivers:', drivers); // Debug info
+        return drivers;
     } catch (err) {
         console.error('Failed to load drivers:', err);
         showNotification('فشل تحميل السائقين', 'error');
@@ -30,7 +32,12 @@ function renderDrivers(drivers, containerId) {
     container.innerHTML = '';
 
     if (drivers.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:2rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;"><p style="color:var(--text-sub); font-size:1rem;">لا يوجد سائقين حالياً. كن أول المنضمين!</p></div>';
+        container.innerHTML = `
+            <div style="text-align:center; padding:2rem; grid-column:1/-1; opacity:0; animation:fadeIn 1s forwards;">
+                <p style="color:var(--text-sub); font-size:1rem;">لا يوجد سائقين متاحين حالياً.</p>
+                <p style="color:var(--text-sub); font-size:0.9rem; margin-top: 0.5rem;">هل أنت سائق؟ <a href="register.html" style="color: var(--accent);">سجل الآن</a></p>
+            </div>
+        `;
         return;
     }
 
