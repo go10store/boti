@@ -6,65 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم السائق - بوطي</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Mobile-First Dashboard Overrides */
-        .dashboard-grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .status-btn {
-            padding: 1rem;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            font-weight: bold;
-            transition: all 0.2s;
-            display: flex;
-            /* Centering content */
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            height: 100px;
-            /* Fixed height for squares */
-        }
-
-        .status-btn.active {
-            border-color: white;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
-        }
-
-        .control-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-group-dark {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-    </style>
 </head>
 
 <body>
     <header class="site-header">
         <div class="container nav-content">
             <div class="logo">
-                <span style="color:var(--text-main)">لوحة</span> السائق
+                <span style="color:var(--text-main)">إدارة</span> المنشور
             </div>
-            <a href="#" onclick="logout()" class="btn btn-secondary"
-                style="padding: 0.5rem 1rem; font-size: 0.8rem;">خروج</a>
+            <a href="index.html" class="btn btn-secondary">الخروج</a>
         </div>
     </header>
 
-    <main class="container" style="max-width: 500px; margin-top: 5rem;">
+    <main class="container" style="max-width: 500px; margin-top: 4rem;">
 
         <!-- Login Section -->
         <div id="login-section" class="card fade-in">
@@ -82,189 +36,195 @@
                         <button type="button" class="input-icon-btn" onclick="togglePin('passwordInput')">👁️</button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 1rem;">دخول</button>
-
-                <div
-                    style="text-align: center; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                    <p style="color: var(--text-sub); margin-bottom: 0.5rem; font-size: 0.9rem;">ليس لديك حساب؟</p>
-                    <a href="register.html" class="btn btn-secondary"
-                        style="width:100%; display:block; text-align:center;">🚛 سجل شاحنتك الآن</a>
+                <div style="text-align: left; margin-bottom: 1.5rem;">
+                    <a href="https://wa.me/218910000000" target="_blank"
+                        style="font-size: 0.85rem; color: var(--text-sub);">نسيت الرقم السري؟</a>
                 </div>
+                <button type="submit" class="btn btn-primary" style="width:100%">دخول</button>
             </form>
         </div>
 
         <script>
             function togglePin(id) {
                 const input = document.getElementById(id);
-                input.type = input.type === 'password' ? 'text' : 'password';
+                if (input.type === 'password') input.type = 'text';
+                else input.type = 'password';
             }
         </script>
 
-        <!-- Dashboard Section -->
-        <div id="dashboard-section" style="display: none;">
-
-            <!-- Welcome Card -->
-            <div class="control-panel slide-up" style="margin-bottom: 1.5rem;">
-                <h2 id="driverName" style="color: var(--accent); margin-bottom: 0.5rem;">مرحباً</h2>
-                <p style="color: var(--text-sub); font-size: 0.9rem;">إدارة حالتك ومعلوماتك</p>
+        <!-- Dashboard Section (Hidden by default) -->
+        <div id="dashboard-section" class="card slide-up" style="display: none;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 id="driverName" style="color: var(--accent);">مرحباً، علي</h2>
+                <p style="color: var(--text-sub);">تحكم في حالة منشورك</p>
             </div>
 
-            <!-- Status Control -->
-            <h3 style="color: var(--text-main); margin-bottom: 1rem;">حالة العمل</h3>
-            <div class="dashboard-grid slide-up" style="grid-template-columns: 1fr 1fr; margin-bottom: 2rem;">
-                <button onclick="changeStatus('AVAILABLE')" id="btn-AVAILABLE" class="status-btn"
-                    style="background: rgba(16, 185, 129, 0.2); color: #10B981;">
-                    <span style="font-size: 1.5rem;">🟢</span>
-                    متاح
-                </button>
-                <button onclick="changeStatus('BUSY')" id="btn-BUSY" class="status-btn"
-                    style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">
-                    <span style="font-size: 1.5rem;">🔴</span>
-                    مشغول
-                </button>
-                <button onclick="changeStatus('EN_ROUTE')" id="btn-EN_ROUTE" class="status-btn"
-                    style="background: rgba(245, 158, 11, 0.2); color: #F59E0B;">
-                    <span style="font-size: 1.5rem;">🟡</span>
-                    في الطريق
-                </button>
-                <button onclick="changeStatus('OFF_DUTY')" id="btn-OFF_DUTY" class="status-btn"
-                    style="background: rgba(107, 114, 128, 0.2); color: #9CA3AF;">
-                    <span style="font-size: 1.5rem;">💤</span>
-                    خارج الخدمة
-                </button>
-            </div>
-
-            <!-- Settings -->
-            <h3 style="color: var(--text-main); margin-bottom: 1rem;">تعديل البيانات</h3>
-            <div class="control-panel slide-up" style="animation-delay: 0.1s;">
-
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label style="color: var(--text-sub); font-size: 0.9rem;">السعر (د.ل)</label>
-                    <input type="number" id="editPrice" class="form-control" style="background: rgba(0,0,0,0.3);">
+            <!-- Categorized Menu System -->
+            <div class="dashboard-menu">
+                <!-- Profile Management -->
+                <div class="menu-category">
+                    <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">👤 معلومات الحساب</h3>
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="tel" id="driverPhone" class="form-control" placeholder="091 xxx">
+                    </div>
+                    <button onclick="updateProfile()" class="btn menu-btn secondary-btn" style="width:100%; margin-top: 0.5rem;">
+                        تحديث المعلومات
+                    </button>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label style="color: var(--text-sub); font-size: 0.9rem;">أوقات العمل</label>
-                    <select id="editWorkHours" class="form-control" style="background: rgba(0,0,0,0.3);">
-                        <option value="ALWAYS">متاح دائماً (24/7)</option>
-                        <option value="MORNING">الفترة الصباحية فقط</option>
-                        <option value="EVENING">الفترة المسائية فقط</option>
-                    </select>
+                <!-- Status Management -->
+                <div class="menu-category" style="margin-top: 1.5rem;">
+                    <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">📊 حالة المنشور</h3>
+                    <div class="form-group">
+                        <label>حدد حالتك الحالية:</label>
+                        <div id="status-buttons" style="display: grid; gap: 0.8rem; margin-top: 0.5rem;">
+                            <button onclick="changeStatus('AVAILABLE')" class="btn status-btn available-btn">
+                                🟢 متاح
+                            </button>
+                            <button onclick="changeStatus('EN_ROUTE')" class="btn status-btn route-btn">
+                                🟡 في الطريق
+                            </button>
+                            <button onclick="changeStatus('BUSY')" class="btn status-btn busy-btn">
+                                🔴 تم البيع / مشغول
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label style="color: var(--text-sub); font-size: 0.9rem;">رقم الهاتف</label>
-                    <input type="tel" id="editPhone" class="form-control" style="background: rgba(0,0,0,0.3);">
+                <!-- Price Management -->
+                <div class="menu-category" style="margin-top: 1.5rem;">
+                    <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">💰 السعر</h3>
+                    <div class="form-group">
+                        <label>سعر الخدمة (دينار ليبي)</label>
+                        <input type="number" id="driverPrice" class="form-control" placeholder="مثال: 50">
+                    </div>
+                    <button onclick="updatePrice()" class="btn menu-btn secondary-btn" style="width:100%; margin-top: 0.5rem;">
+                        تحديث السعر
+                    </button>
                 </div>
 
-                <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%;">حفظ التغييرات</button>
+                <!-- Account Management -->
+                <div class="menu-category" style="margin-top: 1.5rem;">
+                    <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem;">⚙️ إدارة الحساب</h3>
+                    <div style="display: grid; gap: 0.8rem;">
+                        <button onclick="logout()" class="btn menu-btn secondary-btn">
+                            🚪 تسجيل الخروج
+                        </button>
+                        <button onclick="deleteAccount()" class="btn menu-btn danger-btn">
+                            🗑️ طلب حذف الحساب
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Danger Zone -->
-            <div class="control-panel slide-up"
-                style="margin-top: 1.5rem; border-color: rgba(239, 68, 68, 0.3); animation-delay: 0.2s;">
-                <button onclick="deleteAccount()" class="btn"
-                    style="width:100%; background: transparent; color: var(--error); border: 1px solid var(--error);">
-                    🗑️ طلب حذف الحساب
-                </button>
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <p style="text-align: center; font-size: 0.9rem; color: var(--text-sub);">
+                    سيتم تغيير حالتك فوراً في الصفحة الرئيسية
+                </p>
             </div>
-
         </div>
-
     </main>
 
     <script src="app.js"></script>
     <script>
         let currentDriver = null;
 
+        // Check for existing session on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedDriver = getCurrentDriver();
+            if (savedDriver) {
+                currentDriver = savedDriver;
+                showDashboard();
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const phone = e.target.phone.value;
             const password = e.target.password.value;
 
+            // Simple client-side auth for demo
             currentDriver = await loginDriver(phone, password);
 
             if (currentDriver) {
                 showNotification('تم تسجيل الدخول!', 'success');
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('dashboard-section').style.display = 'block';
-                document.getElementById('driverName').innerText = `مرحباً، ${currentDriver.name.split(' ')[0]}`;
-                document.getElementById('editPhone').value = currentDriver.phone;
-                updateStatusUI(currentDriver.workStatus || 'AVAILABLE');
+                showDashboard();
             } else {
                 showNotification('بيانات الدخول غير صحيحة', 'error');
             }
         });
 
+        function showDashboard() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            document.getElementById('driverName').innerText = `مرحباً، ${currentDriver.name}`;
+            
+            // Populate driver info
+            document.getElementById('driverPhone').value = currentDriver.phone || '';
+            document.getElementById('driverPrice').value = currentDriver.price || '';
+        }
+
         async function changeStatus(status) {
             if (!currentDriver) return;
-            // Optimistic UI update
-            updateStatusUI(status);
-
             const success = await updateDriverStatus(currentDriver.id, status);
             if (success) {
-                currentDriver.workStatus = status;
-                showNotification('تم تحديث الحالة', 'success');
+                showNotification('تم تحديث الحالة بنجاح!', 'success');
+                currentDriver.workStatus = status; // Update local state
             } else {
                 showNotification('فشل التحديث', 'error');
-                // Revert if failed (optional, simplifed for now)
             }
         }
 
-        function updateStatusUI(status) {
-            // Reset all buttons
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.classList.remove('active');
-                btn.style.opacity = '0.7';
-            });
-
-            // Activate current
-            const activeBtn = document.getElementById(`btn-${status}`);
-            if (activeBtn) {
-                activeBtn.classList.add('active');
-                activeBtn.style.opacity = '1';
-            }
-        }
-
-        async function saveProfile() {
+        async function updateProfile() {
             if (!currentDriver) return;
-            const newPhone = document.getElementById('editPhone').value;
-            const newPrice = document.getElementById('editPrice').value;
-            const newHours = document.getElementById('editWorkHours').value;
-
-            if (!newPhone.startsWith('09') || newPhone.length !== 10) {
-                showNotification('رقم الهاتف غير صحيح', 'error');
+            
+            const newPhone = document.getElementById('driverPhone').value;
+            if (!newPhone) {
+                showNotification('يرجى إدخال رقم الهاتف', 'error');
                 return;
             }
+            
+            // Validate Libyan phone number
+            if (!newPhone.match(/^09[0-9]{8}$/)) {
+                showNotification('رقم الهاتف يجب أن يكون ليبي (09xxxxxxxx)', 'error');
+                return;
+            }
+            
+            const success = await updateDriverProfile(currentDriver.id, { phone: newPhone });
+            if (success) {
+                showNotification('تم تحديث المعلومات بنجاح!', 'success');
+                currentDriver.phone = newPhone; // Update local state
+                // Update session storage
+                sessionStorage.setItem('currentDriver', JSON.stringify(currentDriver));
+            } else {
+                showNotification('فشل التحديث', 'error');
+            }
+        }
 
-            try {
-                const res = await fetch(`${API_URL}/driver/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: currentDriver.id,
-                        phone: newPhone,
-                        price: newPrice,
-                        workHours: newHours
-                    })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    showNotification('تم حفظ المعلومات بنجاح', 'success');
-                    currentDriver.phone = newPhone;
-                    currentDriver.price = newPrice;
-                    currentDriver.workHours = newHours;
-                } else {
-                    showNotification('فشل الحفظ', 'error');
-                }
-            } catch (e) {
-                showNotification('خطأ في الاتصال', 'error');
+        async function updatePrice() {
+            if (!currentDriver) return;
+            
+            const newPrice = document.getElementById('driverPrice').value;
+            if (!newPrice) {
+                showNotification('يرجى إدخال السعر', 'error');
+                return;
+            }
+            
+            const success = await updateDriverProfile(currentDriver.id, { price: newPrice });
+            if (success) {
+                showNotification('تم تحديث السعر بنجاح!', 'success');
+                currentDriver.price = newPrice; // Update local state
+                // Update session storage
+                sessionStorage.setItem('currentDriver', JSON.stringify(currentDriver));
+            } else {
+                showNotification('فشل التحديث', 'error');
             }
         }
 
         function logout() {
             currentDriver = null;
+            clearDriverSession(); // Clear session storage
             document.getElementById('dashboard-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('loginForm').reset();
@@ -273,14 +233,16 @@
 
         async function deleteAccount() {
             if (!currentDriver) return;
-            if (!confirm('هل أنت متأكد من طلب حذف حسابك؟')) return;
+            if (!confirm('هل أنت متأكد من طلب حذف حسابك؟ سيتم إرسال الطلب للإدارة للمراجعة.')) return;
 
             const result = await requestAccountDeletion(currentDriver.id);
             if (result.success) {
                 showNotification(result.message, 'success');
-                setTimeout(logout, 2000);
+                setTimeout(() => {
+                    logout();
+                }, 2000);
             } else {
-                showNotification(result.message || 'فشل الطلب', 'error');
+                showNotification(result.message || 'فشل إرسال الطلب', 'error');
             }
         }
     </script>
