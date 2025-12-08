@@ -18,10 +18,39 @@ ADMIN_PASS = os.environ.get("ADMIN_PASS", "admin123")
 ORDERS_BIN_ID = os.environ.get("ORDERS_JSONBIN_ID", "")
 ORDERS_API_KEY = os.environ.get("ORDERS_JSONBIN_KEY", "")
 
+# Local storage file paths
+DRIVERS_FILE = "drivers_local.json"
+ORDERS_FILE = "orders_local.json"
+
 print(f"BIN_ID: {BIN_ID}")
 print(f"API_KEY: {API_KEY[:5]}...{API_KEY[-5:] if len(API_KEY) > 10 else ''}")
 print(f"ORDERS_BIN_ID: {ORDERS_BIN_ID}")
 print(f"ORDERS_API_KEY: {ORDERS_API_KEY[:5]}...{ORDERS_API_KEY[-5:] if len(ORDERS_API_KEY) > 10 else ''}")
+
+# File-based storage helpers
+def load_from_file(filename, default_value):
+    """Load data from local file, return default if file doesn't exist"""
+    try:
+        if os.path.exists(filename):
+            with open(filename, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            # Create file with default value
+            save_to_file(filename, default_value)
+            return default_value
+    except Exception as e:
+        print(f"Error loading from file {filename}: {e}")
+        return default_value
+
+def save_to_file(filename, data):
+    """Save data to local file"""
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving to file {filename}: {e}")
+        return False
 
 # JSONBin Helpers
 def get_db():
@@ -33,26 +62,25 @@ def get_db():
         print(f"Response status: {resp.status_code}")
         if resp.status_code == 200:
             data = resp.json().get('record', [])
-            print(f"Retrieved {len(data)} drivers")
+            print(f"Retrieved {len(data)} drivers from JSONBin")
+            # Also save to local file as backup
+            save_to_file(DRIVERS_FILE, data)
             return data
         elif resp.status_code == 404:
-            print(f"BIN not found. Using in-memory database.")
-            # Use in-memory database as fallback
-            if not hasattr(get_db, 'in_memory_db'):
-                get_db.in_memory_db = []
-            return get_db.in_memory_db
+            print(f"BIN not found. Loading from local file.")
+            # Load from local file
+            data = load_from_file(DRIVERS_FILE, [])
+            return data
         else:
             print(f"Failed to fetch drivers: {resp.text}")
-            # Use in-memory database as fallback
-            if not hasattr(get_db, 'in_memory_db'):
-                get_db.in_memory_db = []
-            return get_db.in_memory_db
+            # Load from local file as fallback
+            data = load_from_file(DRIVERS_FILE, [])
+            return data
     except Exception as e:
         print(f"Error getting drivers DB: {e}")
-        # Use in-memory database as fallback
-        if not hasattr(get_db, 'in_memory_db'):
-            get_db.in_memory_db = []
-        return get_db.in_memory_db
+        # Load from local file as fallback
+        data = load_from_file(DRIVERS_FILE, [])
+        return data
 
 def save_db(data):
     try:
@@ -65,36 +93,35 @@ def save_db(data):
         response = requests.put(url, json=data, headers=headers)
         print(f"Save response status: {response.status_code}")
         if response.status_code in [200, 201]:
+            print("Successfully saved to JSONBin")
+            # Also save to local file as backup
+            save_to_file(DRIVERS_FILE, data)
             return True
         elif response.status_code == 401:
-            print("Invalid API key. Using in-memory database.")
-            # Store in memory as fallback
-            get_db.in_memory_db = data
+            print("Invalid API key. Saving to local file only.")
+            save_to_file(DRIVERS_FILE, data)
             return True
         elif response.status_code == 404:
-            print("BIN not found. Using in-memory database.")
-            # Store in memory as fallback
-            get_db.in_memory_db = data
+            print("BIN not found. Saving to local file only.")
+            save_to_file(DRIVERS_FILE, data)
             return True
         else:
             print(f"Failed to save drivers: {response.text}")
-            # Store in memory as fallback
-            get_db.in_memory_db = data
+            # Save to local file as fallback
+            save_to_file(DRIVERS_FILE, data)
             return True
     except Exception as e:
         print(f"Error saving drivers DB: {e}")
-        # Store in memory as fallback
-        get_db.in_memory_db = data
+        # Save to local file as fallback
+        save_to_file(DRIVERS_FILE, data)
         return True
 
 # Orders JSONBin Helpers
 def get_orders_db():
-    # If no orders BIN is configured, fallback to in-memory
+    # If no orders BIN is configured, fallback to local file
     if not ORDERS_BIN_ID or not ORDERS_API_KEY:
-        print("Warning: Orders BIN not configured, using in-memory storage")
-        if not hasattr(get_orders_db, 'orders_cache'):
-            get_orders_db.orders_cache = []
-        return get_orders_db.orders_cache
+        print("Orders BIN not configured, using local file storage")
+        return load_from_file(ORDERS_FILE, [])
     
     try:
         url = f"https://api.jsonbin.io/v3/b/{ORDERS_BIN_ID}/latest"
@@ -104,19 +131,30 @@ def get_orders_db():
         print(f"Orders response status: {resp.status_code}")
         if resp.status_code == 200:
             data = resp.json().get('record', [])
-            print(f"Retrieved {len(data)} orders")
+            print(f"Retrieved {len(data)} orders from JSONBin")
+            # Also save to local file as backup
+            save_to_file(ORDERS_FILE, data)
+            return data
+        elif resp.status_code == 404:
+            print(f"Orders BIN not found. Loading from local file.")
+            # Load from local file
+            data = load_from_file(ORDERS_FILE, [])
             return data
         else:
             print(f"Failed to fetch orders: {resp.text}")
-        return []
+            # Load from local file as fallback
+            data = load_from_file(ORDERS_FILE, [])
+            return data
     except Exception as e:
         print(f"Error getting orders DB: {e}")
-        return []
+        # Load from local file as fallback
+        data = load_from_file(ORDERS_FILE, [])
+        return data
 
 def save_orders_db(data):
-    # If no orders BIN is configured, fallback to in-memory
+    # If no orders BIN is configured, fallback to local file
     if not ORDERS_BIN_ID or not ORDERS_API_KEY:
-        get_orders_db.orders_cache = data
+        save_to_file(ORDERS_FILE, data)
         return True
     
     try:
@@ -128,10 +166,29 @@ def save_orders_db(data):
         print(f"Saving {len(data)} orders to: {url}")
         response = requests.put(url, json=data, headers=headers)
         print(f"Save orders response status: {response.status_code}")
-        return response.status_code == 200
+        if response.status_code in [200, 201]:
+            print("Successfully saved orders to JSONBin")
+            # Also save to local file as backup
+            save_to_file(ORDERS_FILE, data)
+            return True
+        elif response.status_code == 401:
+            print("Invalid orders API key. Saving to local file only.")
+            save_to_file(ORDERS_FILE, data)
+            return True
+        elif response.status_code == 404:
+            print("Orders BIN not found. Saving to local file only.")
+            save_to_file(ORDERS_FILE, data)
+            return True
+        else:
+            print(f"Failed to save orders: {response.text}")
+            # Save to local file as fallback
+            save_to_file(ORDERS_FILE, data)
+            return True
     except Exception as e:
         print(f"Error saving orders DB: {e}")
-        return False
+        # Save to local file as fallback
+        save_to_file(ORDERS_FILE, data)
+        return True
 
 # Routes
 @app.route('/')
@@ -433,5 +490,4 @@ if __name__ == '__main__':
             print("Failed to add test driver!")
     
     app.run(debug=True, port=5000)
-
 
