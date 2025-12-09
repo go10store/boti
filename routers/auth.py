@@ -13,28 +13,32 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/register", response_model=schemas.UserOut)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.phone == user.phone).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Phone number already registered")
-    
-    hashed_password = security.get_password_hash(user.password)
-    new_user = models.User(
-        full_name=user.full_name,
-        phone=user.phone,
-        hashed_password=hashed_password,
-        role=user.role
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    # If driver, create empty profile
-    if user.role == models.UserRole.DRIVER:
-        db_profile = models.DriverProfile(user_id=new_user.id, truck_type="Standard", capacity=10000, price=50.0)
-        db.add(db_profile)
-        db.commit()
+    try:
+        db_user = db.query(models.User).filter(models.User.phone == user.phone).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Phone number already registered")
         
-    return new_user
+        hashed_password = security.get_password_hash(user.password)
+        new_user = models.User(
+            full_name=user.full_name,
+            phone=user.phone,
+            hashed_password=hashed_password,
+            role=user.role
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        # If driver, create empty profile
+        if user.role == models.UserRole.DRIVER:
+            db_profile = models.DriverProfile(user_id=new_user.id, truck_type="Standard", capacity=10000, price=50.0)
+            db.add(db_profile)
+            db.commit()
+            
+        return new_user
+    except Exception as e:
+        print(f"REGISTER ERROR: {str(e)}") # Log to Railway console
+        raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
 @router.post("/login", response_model=schemas.Token)
 def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
