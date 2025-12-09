@@ -245,154 +245,119 @@ async function loadDriverOrders() {
                 ${o.status === 'pending' ? `<button onclick="updateOrderStatus(${o.id}, 'accepted')" class="block mt-2 text-xs bg-green-500 text-white px-2 py-1 rounded">قبول</button>` : ''}
             </div>
         `;
-        container.appendChild(div);
-    });
-}
-
-// CUSTOMER FUNCTIONS
-function initMap() {
-    // Default to Zintan, Libya
-    const zintanCoords = [31.9317, 12.2536];
-    map = L.map('map').setView(zintanCoords, 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const { latitude, longitude } = pos.coords;
-            map.setView([latitude, longitude], 13);
-            L.marker([latitude, longitude]).addTo(map).bindPopup('موقعك الحالي').openPopup();
-            loadNearbyDrivers(latitude, longitude);
-        }, () => {
-            // Fallback if denied
-            loadNearbyDrivers(zintanCoords[0], zintanCoords[1]);
-        });
-    } else {
-        loadNearbyDrivers(zintanCoords[0], zintanCoords[1]);
+        setRating(0);
+        document.getElementById('ratingComment').value = '';
+        document.getElementById('ratingModal').classList.remove('hidden');
     }
-}
-
-// --- Rating Handling ---
-let currentRating = 0;
-let ratingOrderId = null;
-
-function openRatingModal(orderId) {
-    ratingOrderId = orderId;
-    currentRating = 0;
-    setRating(0);
-    document.getElementById('ratingComment').value = '';
-    document.getElementById('ratingModal').classList.remove('hidden');
-}
 
 function closeRatingModal() {
-    document.getElementById('ratingModal').classList.add('hidden');
-    ratingOrderId = null;
-}
+            document.getElementById('ratingModal').classList.add('hidden');
+            ratingOrderId = null;
+        }
 
 function setRating(n) {
-    currentRating = n;
-    const stars = document.querySelectorAll('.star-btn');
-    stars.forEach((star, index) => {
-        if (index < n) {
-            star.classList.remove('text-gray-300');
-            star.classList.add('text-yellow-400');
-        } else {
-            star.classList.add('text-gray-300');
-            star.classList.remove('text-yellow-400');
+            currentRating = n;
+            const stars = document.querySelectorAll('.star-btn');
+            stars.forEach((star, index) => {
+                if (index < n) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.add('text-gray-300');
+                    star.classList.remove('text-yellow-400');
+                }
+            });
         }
-    });
-}
 
 async function submitRating() {
-    if (!currentRating || !ratingOrderId) return showToast('الرجاء اختيار التقييم', 'error');
+            if (!currentRating || !ratingOrderId) return showToast('الرجاء اختيار التقييم', 'error');
 
-    const token = localStorage.getItem('token');
-    const comment = document.getElementById('ratingComment').value;
+            const token = localStorage.getItem('token');
+            const comment = document.getElementById('ratingComment').value;
 
-    try {
-        const res = await fetch(`${API_URL}/reviews/${ratingOrderId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ rating: currentRating, comment })
-        });
+            try {
+                const res = await fetch(`${API_URL}/reviews/${ratingOrderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ rating: currentRating, comment })
+                });
 
-        if (res.ok) {
-            showToast('شكراً لتقييمك!', 'success');
-            closeRatingModal();
-        } else {
-            const err = await res.json();
-            showToast(err.detail || 'حدث خطأ', 'error');
+                if (res.ok) {
+                    showToast('شكراً لتقييمك!', 'success');
+                    closeRatingModal();
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'حدث خطأ', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('فشل الاتصال', 'error');
+            }
         }
-    } catch (e) {
-        console.error(e);
-        showToast('فشل الاتصال', 'error');
-    }
-}
 
 // Update loadNearbyDrivers to show stars
 async function loadNearbyDrivers(lat, lng) {
-    const token = localStorage.getItem('token');
-    try {
-        const res = await fetch(`${API_URL}/drivers/nearby?lat=${lat}&lng=${lng}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const drivers = await res.json();
-        const list = document.getElementById('nearbyDriversList');
-        list.innerHTML = '';
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}/drivers/nearby?lat=${lat}&lng=${lng}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const drivers = await res.json();
+                const list = document.getElementById('nearbyDriversList');
+                list.innerHTML = '';
 
-        drivers.forEach(d => {
-            if (d.current_lat && d.current_lng) {
-                const stars = '★'.repeat(Math.round(d.average_rating || 0)) + '☆'.repeat(5 - Math.round(d.average_rating || 0));
+                drivers.forEach(d => {
+                    if (d.current_lat && d.current_lng) {
+                        const stars = '★'.repeat(Math.round(d.average_rating || 0)) + '☆'.repeat(5 - Math.round(d.average_rating || 0));
 
-                // Add marker
-                L.marker([d.current_lat, d.current_lng])
-                    .addTo(map)
-                    .bindPopup(`
+                        // Add marker
+                        L.marker([d.current_lat, d.current_lng])
+                            .addTo(map)
+                            .bindPopup(`
                         <b>${d.driver_name || 'سائق'}</b><br>
                         <span class="text-yellow-500">${stars}</span> (${d.rating_count})<br>
                         السعر: ${d.price} د.ل<br>
                         <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">طلب الآن</button>
                     `);
 
-                // Add card
-                const card = document.createElement('div');
-                card.className = "flex-shrink-0 w-48 bg-white border rounded p-3 shadow text-center cursor-pointer hover:bg-gray-50";
-                card.onclick = () => map.setView([d.current_lat, d.current_lng], 15);
-                card.innerHTML = `
+                        // Add card
+                        const card = document.createElement('div');
+                        card.className = "flex-shrink-0 w-48 bg-white border rounded p-3 shadow text-center cursor-pointer hover:bg-gray-50";
+                        card.onclick = () => map.setView([d.current_lat, d.current_lng], 15);
+                        card.innerHTML = `
                    <div class="font-bold text-gray-800">${d.driver_name || 'سائق'}</div>
                    <div class="text-yellow-500 text-sm mb-1">${stars} <span class="text-gray-400 text-xs">(${d.rating_count})</span></div>
                    <div class="text-sm text-gray-500">${d.truck_type}</div>
                    <div class="text-green-600 font-bold my-1">${d.price} د.ل</div>
                    <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-blue-600 text-white text-xs py-1 rounded">طلب</button>
                `;
-                list.appendChild(card);
-            }
-        });
-    } catch (e) { console.error('Map error', e); }
-}
+                        list.appendChild(card);
+                    }
+                });
+            } catch (e) { console.error('Map error', e); }
+        }
 
 async function loadCustomerOrders() {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/orders/my`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const orders = await res.json();
-    const container = document.getElementById('customerOrdersList');
-    container.innerHTML = '';
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/orders/my`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const orders = await res.json();
+            const container = document.getElementById('customerOrdersList');
+            container.innerHTML = '';
 
-    if (orders.length === 0) {
-        container.innerHTML = '<p class="text-gray-500">لا توجد طلبات سابقة</p>';
-        return;
-    }
+            if (orders.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">لا توجد طلبات سابقة</p>';
+                return;
+            }
 
-    orders.forEach(o => {
-        const div = document.createElement('div');
-        div.className = 'border p-3 rounded bg-white flex justify-between items-center';
-        div.innerHTML = `
+            orders.forEach(o => {
+                const div = document.createElement('div');
+                div.className = 'border p-3 rounded bg-white flex justify-between items-center';
+                div.innerHTML = `
             <div>
                 <p class="font-bold">السائق: ${o.driver_name || 'غير معروف'}</p>
                 <p class="text-xs text-gray-500">${new Date(o.created_at).toLocaleDateString()}</p>
@@ -402,38 +367,38 @@ async function loadCustomerOrders() {
                 ${o.status === 'completed' ? `<button onclick="openRatingModal(${o.id})" class="block mt-1 text-xs text-blue-600 underline">قيم السائق</button>` : ''}
             </div>
         `;
-        container.appendChild(div);
-    });
-}
+                container.appendChild(div);
+            });
+        }
 
 function getStatusColor(status) {
-    switch (status) {
-        case 'pending': return 'bg-yellow-500';
-        case 'accepted': return 'bg-blue-500';
-        case 'en_route': return 'bg-indigo-500';
-        case 'completed': return 'bg-green-600';
-        case 'cancelled': return 'bg-red-500';
-        default: return 'bg-gray-400';
-    }
-}
+            switch (status) {
+                case 'pending': return 'bg-yellow-500';
+                case 'accepted': return 'bg-blue-500';
+                case 'en_route': return 'bg-indigo-500';
+                case 'completed': return 'bg-green-600';
+                case 'cancelled': return 'bg-red-500';
+                default: return 'bg-gray-400';
+            }
+        }
 
 async function updateOrderStatus(id, status) {
-    const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/orders/${id}/status`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-    });
-    loadDriverOrders(); // Refresh
-    loadCustomerOrders(); // Refresh
-}
+            const token = localStorage.getItem('token');
+            await fetch(`${API_URL}/orders/${id}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status })
+            });
+            loadDriverOrders(); // Refresh
+            loadCustomerOrders(); // Refresh
+        }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Only init dashboard if we are on the dashboard page
-    if (document.getElementById('driverView') || document.getElementById('customerView')) {
-        initDashboard();
-    }
-});
+            // Only init dashboard if we are on the dashboard page
+            if (document.getElementById('driverView') || document.getElementById('customerView')) {
+                initDashboard();
+            }
+        });
