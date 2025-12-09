@@ -45,6 +45,8 @@ class DriverProfileOut(DriverProfileBase):
     is_available: bool
     current_lat: Optional[float]
     current_lng: Optional[float]
+    average_rating: float = 0.0
+    rating_count: int = 0
     driver_name: Optional[str] = None # Enriched field
 
     class Config:
@@ -78,3 +80,17 @@ class OrderOut(OrderBase):
 
 class OrderStatusUpdate(BaseModel):
     status: str
+
+# --- Review Schemas ---
+class ReviewCreate(BaseModel):
+    rating: int
+    comment: Optional[str] = None
+
+class ReviewOut(ReviewCreate):
+    id: int
+    driver_id: int
+    customer_name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
