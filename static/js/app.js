@@ -410,3 +410,7 @@ async function updateOrderStatus(id, status) {
     loadDriverOrders(); // Refresh
     loadCustomerOrders(); // Refresh
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDashboard();
+});
