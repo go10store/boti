@@ -48,6 +48,7 @@ class DriverProfileOut(DriverProfileBase):
     average_rating: float = 0.0
     rating_count: int = 0
     driver_name: Optional[str] = None # Enriched field
+    phone_number: Optional[str] = None # Enriched field
 
     class Config:
         from_attributes = True
