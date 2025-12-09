@@ -43,6 +43,8 @@ class DriverProfile(Base):
     current_lat = Column(Float, nullable=True)
     current_lng = Column(Float, nullable=True)
     last_location_update = Column(DateTime, nullable=True)
+    average_rating = Column(Float, default=0.0)
+    rating_count = Column(Integer, default=0)
 
     user = relationship("User", back_populates="driver_profile")
 
@@ -61,3 +63,16 @@ class Order(Base):
 
     customer = relationship("User", foreign_keys=[customer_id], back_populates="orders_placed")
     driver = relationship("User", foreign_keys=[driver_id], back_populates="orders_received")
+    review = relationship("Review", back_populates="order", uselist=False)
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    driver_id = Column(Integer, ForeignKey("users.id"))
+    rating = Column(Integer) # 1-5
+    comment = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    order = relationship("Order", back_populates="review")
