@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body class="bg-blue-50">
 
     <div class="min-h-screen flex items-center justify-center">
@@ -21,15 +23,19 @@
             </div>
 
             <!-- Login Form -->
-            <form class="mt-8 space-y-6" id="loginForm">
+            <form class="mt-8 space-y-6" id="loginForm" novalidate>
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <label for="phone" class="sr-only">رقم الهاتف</label>
-                        <input id="phone" name="phone" type="tel" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="رقم الهاتف">
+                        <input id="phone" name="phone" type="text" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="رقم الهاتف">
                     </div>
                     <div>
                         <label for="password" class="sr-only">كلمة المرور</label>
-                        <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="كلمة المرور">
+                        <input id="password" name="password" type="password" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="كلمة المرور">
                     </div>
                 </div>
 
@@ -42,19 +48,27 @@
                 </div>
 
                 <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <button type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         تسجيل الدخول
                     </button>
                 </div>
             </form>
 
-             <!-- Register Form (Hidden by default) -->
-             <form class="mt-8 space-y-6 hidden" id="registerForm">
+            <!-- Register Form (Hidden by default) -->
+            <form class="mt-8 space-y-6 hidden" id="registerForm" novalidate>
                 <div class="rounded-md shadow-sm space-y-2">
-                    <input id="reg_fullname" type="text" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="الاسم الكامل">
-                    <input id="reg_phone" type="tel" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="رقم الهاتف">
-                    <input id="reg_password" type="password" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="كلمة المرور">
-                    <select id="reg_role" class="block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <input id="reg_fullname" type="text" required
+                        class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="الاسم الكامل">
+                    <input id="reg_phone" type="text" required
+                        class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="رقم الهاتف">
+                    <input id="reg_password" type="password" required
+                        class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="كلمة المرور">
+                    <select id="reg_role"
+                        class="block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         <option value="customer">عميل (أريد مياه)</option>
                         <option value="driver">سائق (أملك شاحنة)</option>
                     </select>
@@ -66,7 +80,8 @@
                     </a>
                 </div>
 
-                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     إنشاء حساب
                 </button>
             </form>
@@ -83,4 +98,5 @@
         }
     </script>
 </body>
+
 </html>
