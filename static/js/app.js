@@ -1,9 +1,38 @@
 const API_URL = "";
 
+// Helper to show toasts
+function showToast(msg, type = 'info') {
+    let bg = "#2563EB"; // Blue
+    if (type === 'error') bg = "#DC2626"; // Red
+    if (type === 'success') bg = "#10B981"; // Green
+
+    Toastify({
+        text: msg,
+        duration: 3000,
+        gravity: "top", // `top` or `bottom`
+        position: "center", // `left`, `center` or `right`
+        style: {
+            background: bg,
+            borderRadius: "10px",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            fontFamily: "Tajawal, sans-serif"
+        },
+    }).showToast();
+}
+
+// Replaces showError
+function showError(msg) {
+    const errorMsg = document.getElementById('errorMsg');
+    if (errorMsg) {
+        errorMsg.textContent = msg;
+        errorMsg.classList.remove('hidden');
+    }
+    showToast(msg, 'error');
+}
+
 // --- Auth Handling ---
 const registerForm = document.getElementById('registerForm');
 const loginForm = document.getElementById('loginForm');
-const errorMsg = document.getElementById('errorMsg');
 
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -22,7 +51,7 @@ if (registerForm) {
 
             if (!res.ok) throw new Error((await res.json()).detail);
 
-            alert('تم إنشاء الحساب بنجاح! قم بتسجيل الدخول.');
+            showToast('تم إنشاء الحساب بنجاح! قم بتسجيل الدخول.', 'success');
             toggleRegister();
         } catch (err) {
             showError(err.message);
@@ -60,15 +89,6 @@ if (loginForm) {
             showError(err.message);
         }
     });
-}
-
-function showError(msg) {
-    if (errorMsg) {
-        errorMsg.textContent = msg;
-        errorMsg.classList.remove('hidden');
-    } else {
-        alert(msg);
-    }
 }
 
 function logout() {
@@ -147,7 +167,7 @@ async function updateDriverProfile() {
         },
         body: JSON.stringify({ truck_type: 'Standard', capacity: parseInt(capacity), price: parseFloat(price) })
     });
-    alert('تم حفظ البيانات');
+    showToast('تم حفظ البيانات', 'success');
 }
 
 async function toggleDriverStatus() {
@@ -285,7 +305,7 @@ function setRating(n) {
 }
 
 async function submitRating() {
-    if (!currentRating || !ratingOrderId) return alert('الرجاء اختيار التقييم');
+    if (!currentRating || !ratingOrderId) return showToast('الرجاء اختيار التقييم', 'error');
 
     const token = localStorage.getItem('token');
     const comment = document.getElementById('ratingComment').value;
@@ -301,15 +321,15 @@ async function submitRating() {
         });
 
         if (res.ok) {
-            alert('شكراً لتقييمك!');
+            showToast('شكراً لتقييمك!', 'success');
             closeRatingModal();
         } else {
             const err = await res.json();
-            alert(err.detail || 'حدث خطأ');
+            showToast(err.detail || 'حدث خطأ', 'error');
         }
     } catch (e) {
         console.error(e);
-        alert('فشل الاتصال');
+        showToast('فشل الاتصال', 'error');
     }
 }
 
