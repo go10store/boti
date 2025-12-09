@@ -412,5 +412,8 @@ async function updateOrderStatus(id, status) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    initDashboard();
+    // Only init dashboard if we are on the dashboard page
+    if (document.getElementById('driverView') || document.getElementById('customerView')) {
+        initDashboard();
+    }
 });
