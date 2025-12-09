@@ -27,9 +27,11 @@ app.include_router(orders.router)
 # Mount static files (Frontend)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Boti API. Go to /static/index.html"}
+    return RedirectResponse(url="/static/index.html")
 
 @app.get("/health")
 async def health_check():
