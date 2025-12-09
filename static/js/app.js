@@ -253,6 +253,67 @@ function initMap() {
     }
 }
 
+// --- Rating Handling ---
+let currentRating = 0;
+let ratingOrderId = null;
+
+function openRatingModal(orderId) {
+    ratingOrderId = orderId;
+    currentRating = 0;
+    setRating(0);
+    document.getElementById('ratingComment').value = '';
+    document.getElementById('ratingModal').classList.remove('hidden');
+}
+
+function closeRatingModal() {
+    document.getElementById('ratingModal').classList.add('hidden');
+    ratingOrderId = null;
+}
+
+function setRating(n) {
+    currentRating = n;
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach((star, index) => {
+        if (index < n) {
+            star.classList.remove('text-gray-300');
+            star.classList.add('text-yellow-400');
+        } else {
+            star.classList.add('text-gray-300');
+            star.classList.remove('text-yellow-400');
+        }
+    });
+}
+
+async function submitRating() {
+    if (!currentRating || !ratingOrderId) return alert('الرجاء اختيار التقييم');
+
+    const token = localStorage.getItem('token');
+    const comment = document.getElementById('ratingComment').value;
+
+    try {
+        const res = await fetch(`${API_URL}/reviews/${ratingOrderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ rating: currentRating, comment })
+        });
+
+        if (res.ok) {
+            alert('شكراً لتقييمك!');
+            closeRatingModal();
+        } else {
+            const err = await res.json();
+            alert(err.detail || 'حدث خطأ');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('فشل الاتصال');
+    }
+}
+
+// Update loadNearbyDrivers to show stars
 async function loadNearbyDrivers(lat, lng) {
     const token = localStorage.getItem('token');
     try {
@@ -265,11 +326,14 @@ async function loadNearbyDrivers(lat, lng) {
 
         drivers.forEach(d => {
             if (d.current_lat && d.current_lng) {
+                const stars = '★'.repeat(Math.round(d.average_rating || 0)) + '☆'.repeat(5 - Math.round(d.average_rating || 0));
+
                 // Add marker
                 L.marker([d.current_lat, d.current_lng])
                     .addTo(map)
                     .bindPopup(`
                         <b>${d.driver_name || 'سائق'}</b><br>
+                        <span class="text-yellow-500">${stars}</span> (${d.rating_count})<br>
                         السعر: ${d.price} د.ل<br>
                         <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">طلب الآن</button>
                     `);
@@ -280,6 +344,7 @@ async function loadNearbyDrivers(lat, lng) {
                 card.onclick = () => map.setView([d.current_lat, d.current_lng], 15);
                 card.innerHTML = `
                    <div class="font-bold text-gray-800">${d.driver_name || 'سائق'}</div>
+                   <div class="text-yellow-500 text-sm mb-1">${stars} <span class="text-gray-400 text-xs">(${d.rating_count})</span></div>
                    <div class="text-sm text-gray-500">${d.truck_type}</div>
                    <div class="text-green-600 font-bold my-1">${d.price} د.ل</div>
                    <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-blue-600 text-white text-xs py-1 rounded">طلب</button>
@@ -289,52 +354,6 @@ async function loadNearbyDrivers(lat, lng) {
         });
     } catch (e) { console.error('Map error', e); }
 }
-
-function openBookingModal(driverId, name, price) {
-    selectedDriver = { id: driverId, price };
-    document.getElementById('modalDriverName').textContent = name;
-    document.getElementById('modalPrice').textContent = price;
-    document.getElementById('bookingModal').classList.remove('hidden');
-}
-
-function closeModal() {
-    document.getElementById('bookingModal').classList.add('hidden');
-    selectedDriver = null;
-}
-
-document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
-    if (!selectedDriver) return;
-    const token = localStorage.getItem('token');
-    const center = map.getCenter();
-    const details = document.getElementById('deliveryDetails').value;
-
-    try {
-        const res = await fetch(`${API_URL}/orders/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                driver_id: selectedDriver.id,
-                amount: selectedDriver.price,
-                delivery_lat: center.lat,
-                delivery_lng: center.lng,
-                delivery_address: details
-            })
-        });
-
-        if (res.ok) {
-            alert('تم إرسال طلبك بنجاح! سيصلك إشعار عند القبول.');
-            closeModal();
-            loadCustomerOrders();
-        } else {
-            alert('حدث خطأ أثناء الطلب');
-        }
-    } catch (e) {
-        console.error(e);
-    }
-});
 
 async function loadCustomerOrders() {
     const token = localStorage.getItem('token');
@@ -360,6 +379,7 @@ async function loadCustomerOrders() {
             </div>
             <div>
                 <span class="px-2 py-1 rounded text-xs text-white ${getStatusColor(o.status)}">${o.status}</span>
+                ${o.status === 'completed' ? `<button onclick="openRatingModal(${o.id})" class="block mt-1 text-xs text-blue-600 underline">قيم السائق</button>` : ''}
             </div>
         `;
         container.appendChild(div);
