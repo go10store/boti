@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import models
 from database import engine
-from routers import auth, drivers, orders
+from routers import auth, drivers, orders, reviews
 
 # Create DB Tables
 models.Base.metadata.create_all(bind=engine)
@@ -23,6 +23,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(drivers.router)
 app.include_router(orders.router)
+app.include_router(reviews.router)
 
 # Mount static files (Frontend)
 app.mount("/static", StaticFiles(directory="static"), name="static")
