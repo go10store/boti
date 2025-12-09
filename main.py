@@ -36,3 +36,15 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/db-test")
+async def db_test():
+    try:
+        from database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        return {"status": "Database Connected Successfully!"}
+    except Exception as e:
+        return {"status": "Database Error", "details": str(e)}
