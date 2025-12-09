@@ -79,6 +79,7 @@ def get_nearby_drivers(lat: float, lng: float, db: Session = Depends(get_db)):
     results = []
     for d in drivers:
         d.driver_name = d.user.full_name
+        d.phone_number = d.user.phone
         results.append(d)
         
     return results
