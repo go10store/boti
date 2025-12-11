@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة التحكم - بوطي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            500: '#2563EB', // Royal Blue
+                            600: '#1D4ED8',
+                            900: '#1E3A8A', // Deep Navy
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 pb-20">
+
+    <!-- Navbar -->
+    <nav class="nav-glass fixed top-0 w-full z-40 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                        ب</div>
+                    <div class="text-brand-900 font-bold text-xl tracking-tight">بوطي</div>
+                </div>
+                <!-- SOS Button -->
+                <button onclick="triggerSOS()"
+                    class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse hover:bg-red-700 ml-4">
+                    <i class="fas fa-exclamation-triangle"></i> طوارئ
+                </button>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
+                        <i class="fas fa-user-circle text-brand-600 text-lg"></i>
+                        <span id="userName" class="text-brand-900 font-medium text-sm"></span>
+                    </div>
+                    <button onclick="logout()"
+                        class="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+
+        <!-- DRIVER VIEW -->
+        <div id="driverView" class="hidden space-y-6 animate__animated animate__fadeIn">
+            <!-- Status Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">لوحة القيادة</h2>
+                        <p class="text-gray-500 text-sm">إدارة حالتك وتلقي الطلبات</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer group">
+                        <input type="checkbox" id="availabilityToggle" class="sr-only peer"
+                            onchange="toggleDriverStatus()">
+                        <div
+                            class="w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500 transition-colors">
+                        </div>
+                        <span class="mr-3 text-sm font-bold text-gray-900 transition-colors" id="statusText">غير
+                            متاح</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Stats -->
+                    <div class="col-span-1 md:col-span-3 grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-blue-50 p-4 rounded-xl text-center">
+                            <p class="text-gray-500 text-sm">أرباح اليوم</p>
+                            <p class="text-2xl font-bold text-blue-600" id="todaysEarnings">0 د.ل</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-xl text-center">
+                            <p class="text-gray-500 text-sm">طلبات اليوم</p>
+                            <p class="text-2xl font-bold text-green-600" id="todaysOrders">0</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-gray-700">سعر النقلة (د.ل)</label>
+                        <div class="relative">
+                            <input type="number" id="driverPrice"
+                                class="block w-full pl-3 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-brand-500 focus:border-brand-500 transition-shadow bg-gray-50 focus:bg-white"
+                                placeholder="مثلاً: 50">
+                            <span class="absolute left-3 top-3 text-gray-400 text-sm">د.ل</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-gray-700">سعة الشاحنة</label>
+                        <div class="relative">
+                            <input type="number" id="driverCapacity"
+                                class="block w-full pl-3 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-brand-500 focus:border-brand-500 transition-shadow bg-gray-50 focus:bg-white"
+                                placeholder="مثلاً: 10000">
+                            <span class="absolute left-3 top-3 text-gray-400 text-sm">لتر</span>
+                        </div>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="updateDriverProfile()"
+                            class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-700 transition-all transform hover:-translate-y-0.5">
+                            <i class="fas fa-save ml-2"></i> حفظ الإعدادات
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-list-ul ml-2 text-brand-500"></i> الطلبات الواردة
+                </h3>
+                <div id="driverOrdersList" class="space-y-3">
+                    <!-- Orders injected here -->
+                    <div class="text-center py-10">
+                        <div class="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-inbox text-gray-400 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-500">لا توجد طلبات حالياً</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOMER VIEW -->
+        <div id="customerView" class="hidden space-y-6 animate__animated animate__fadeIn">
+            <!-- Map Card -->
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10 relative">
+                    <h2 class="text-lg font-bold text-gray-900">حدد موقعك 📍</h2>
+                    <span class="text-xs bg-blue-100 text-brand-700 px-2 py-1 rounded-full font-medium">اسحب الخريطة
+                        للبحث</span>
+                </div>
+                <div class="relative h-[400px] w-full">
+                    <div id="map" class="absolute inset-0 z-0"></div>
+                </div>
+
+                <!-- Nearby Drivers (Horizontal Scroll) -->
+                <div class="p-4 bg-gray-50">
+                    <h3 class="text-sm font-bold text-gray-500 mb-3 px-1">شاحنات بالقرب منك</h3>
+                    <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x" id="nearbyDriversList">
+                        <!-- Cards injected here -->
+                        <div class="flex-shrink-0 w-full text-center py-4 text-gray-400 text-sm">
+                            جاري البحث عن سائقين...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">طلباتي السابقة</h3>
+                <div id="customerOrdersList" class="space-y-3">
+                    <!-- Orders -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 animate__animated animate__fadeIn">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate__animated animate__zoomIn">
+            <div class="bg-brand-600 p-4 text-center">
+                <h3 class="text-white text-lg font-bold">تأكيد الطلب</h3>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-600 text-2xl">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <p class="text-gray-600">طلب مياه من <span id="modalDriverName"
+                            class="font-bold text-gray-900"></span>
+                    </p>
+                    <p class="text-2xl font-bold text-green-600 mt-2"><span id="modalPrice"></span> د.ل</p>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="deliveryDetails"
+                        class="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-brand-500 focus:border-brand-500 bg-gray-50 text-sm"
+                        placeholder="تفاصيل إضافية (المنزل، الشارع...)">
+
+                    <button id="confirmOrderBtn"
+                        class="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:bg-brand-700 transition-all">
+                        تأكيد وإرسال الطلب
+                    </button>
+                    <button onclick="closeModal()"
+                        class="w-full bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-all">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 animate__animated animate__fadeIn">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate__animated animate__zoomIn">
+            <div class="p-8 text-center">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">كيف كانت خدمتنا؟</h3>
+                <p class="text-gray-500 text-sm mb-6">ساعدنا في تحسين الخدمة بتقييم السائق</p>
+
+                <div class="flex justify-center mb-6 gap-2 flex-row-reverse">
+                    <button onclick="setRating(5)"
+                        class="star-btn text-4xl text-gray-200 hover:text-yellow-400 transition-colors focus:outline-none">★</button>
+                    <button onclick="setRating(4)"
+                        class="star-btn text-4xl text-gray-200 hover:text-yellow-400 transition-colors focus:outline-none">★</button>
+                    <button onclick="setRating(3)"
+                        class="star-btn text-4xl text-gray-200 hover:text-yellow-400 transition-colors focus:outline-none">★</button>
+                    <button onclick="setRating(2)"
+                        class="star-btn text-4xl text-gray-200 hover:text-yellow-400 transition-colors focus:outline-none">★</button>
+                    <button onclick="setRating(1)"
+                        class="star-btn text-4xl text-gray-200 hover:text-yellow-400 transition-colors focus:outline-none">★</button>
+                </div>
+                <script src="js/app.js?v=3"></script>
+</body>
+
+</html>

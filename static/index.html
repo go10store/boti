@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوطي -</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            500: '#2563EB', // Royal Blue
+                            600: '#1D4ED8',
+                            900: '#1E3A8A', // Deep Navy
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #2563EB, #1D4ED8);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Background Elements -->
+    <div class="fixed top-0 left-0 w-full h-64 bg-brand-600 -skew-y-6 transform origin-top-left z-[-1] shadow-xl"></div>
+    <div
+        class="fixed bottom-0 right-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 z-[-1]">
+    </div>
+
+    <!-- Main Container -->
+    <div class="glass-panel w-full max-w-md rounded-2xl p-8 animate__animated animate__fadeInUp">
+
+        <!-- Logo Area -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 text-brand-600 mb-4 shadow-inner animate__animated animate__bounceIn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">بوطي</h1>
+            <p class="text-gray-500 mt-2 font-medium">مياهك توصلك.. وين ما تكون</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-5" novalidate onsubmit="return false;">
+            <div class="space-y-4">
+                <div class="relative">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <input id="phone" name="phone" type="text" required
+                        class="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-gray-50 focus:bg-white text-right"
+                        placeholder="رقم الهاتف (مثل: 0912345678)">
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <input id="password" name="password" type="password" required
+                        class="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors bg-gray-50 focus:bg-white"
+                        placeholder="كلمة المرور">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-600 cursor-pointer">
+                    <input type="checkbox"
+                        class="form-checkbox text-brand-600 rounded border-gray-300 focus:ring-brand-500">
+                    <span class="mr-2">تذكرني</span>
+                </label>
+                <a href="#" class="font-medium text-brand-600 hover:text-brand-500 transition-colors">نسيت كلمة
+                    المرور؟</a>
+            </div>
+
+            <button type="submit"
+                class="btn-primary w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg run-in text-base font-bold text-white hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                تسجيل الدخول
+                <i class="fas fa-arrow-left mr-2 mt-1 text-sm"></i>
+            </button>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    جديد معنا؟
+                    <a href="#" onclick="toggleRegister()"
+                        class="font-bold text-brand-600 hover:text-brand-800 transition-colors cursor-pointer">أنشئ
+                        حساباً مجانياً</a>
+                </p>
+            </div>
+        </form>
+
+        <!-- Register Form (Hidden) -->
+        <form id="registerForm" class="space-y-4 hidden animate__animated animate__fadeIn" novalidate
+            onsubmit="return false;">
+            <div class="grid grid-cols-1 gap-4">
+                <input id="reg_fullname" type="text" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-gray-50 focus:bg-white"
+                    placeholder="الاسم التلاثي الكامل">
+                <input id="reg_phone" type="text" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-gray-50 focus:bg-white"
+                    placeholder="رقم الهاتف">
+                <input id="reg_password" type="password" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-gray-50 focus:bg-white"
+                    placeholder="كلمة المرور">
+
+                <div class="relative">
+                    <select id="reg_role"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 bg-gray-50 focus:bg-white appearance-none">
+                        <option value="customer">🚹 عميل (أريد مياه)</option>
+                        <option value="driver">🚒 سائق (أملك شاحنة)</option>
+                    </select>
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transform transition hover:-translate-y-0.5">
+                ابدأ رحلتك
+            </button>
+
+            <div class="text-center mt-4">
+                <a href="#" onclick="toggleRegister()" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                    <i class="fas fa-chevron-right ml-1"></i> العودة لتسجيل الدخول
+                </a>
+            </div>
+        </form>
+
+        <!-- Error/Success Messages Placeholder -->
+        <div id="errorMsg"
+            class="mt-4 p-3 rounded-lg bg-red-50 text-red-600 text-center text-sm hidden font-medium border border-red-100">
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="js/app.js?v=3"></script>
+    <script>
+        function toggleRegister() {
+            const login = document.getElementById('loginForm');
+            const register = document.getElementById('registerForm');
+            const title = document.querySelector('h1');
+
+            if (login.classList.contains('hidden')) {
+                // Show Login
+                register.classList.add('hidden');
+                login.classList.remove('hidden');
+                login.classList.add('animate__fadeIn');
+                title.textContent = 'بوطي';
+            } else {
+                // Show Register
+                login.classList.add('hidden');
+                register.classList.remove('hidden');
+                register.classList.add('animate__fadeIn');
+                title.textContent = 'حساب جديد';
+            }
+            document.getElementById('errorMsg').classList.add('hidden');
+        }
+    </script>
+</body>
+
+</html>
