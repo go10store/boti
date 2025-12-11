@@ -126,8 +126,11 @@ async function initDashboard() {
         }
     } else {
         document.getElementById('customerView').classList.remove('hidden');
-        initMap();
-        loadCustomerOrders();
+        // Wait for DOM to render before initializing map
+        setTimeout(() => {
+            initMap();
+            loadCustomerOrders();
+        }, 100);
     }
 }
 
@@ -371,12 +374,18 @@ async function loadNearbyDrivers(lat, lng) {
                     driverMarkers[d.user_id].openPopup();
                 };
                 card.innerHTML = `
-                   <div class="font-bold text-gray-800">${d.driver_name || 'سائق'}</div>
-                   <div class="text-xs text-gray-500 mb-1" dir="ltr"><i class="fas fa-phone"></i> ${d.phone_number || 'غير متوفر'}</div>
+                   <div class="flex items-center justify-between mb-2">
+                       <div class="font-bold text-gray-800 text-sm">${d.driver_name || 'سائق'}</div>
+                       <span class="px-2 py-0.5 rounded-full text-xs ${d.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${d.is_available ? 'نشط' : 'غير نشط'}</span>
+                   </div>
+                   <div class="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1" dir="ltr">
+                       <i class="fas fa-phone"></i> ${d.phone_number || 'غير متوفر'}
+                       ${d.phone_number ? `<a href="https://wa.me/${d.phone_number.replace(/\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-700"><i class="fab fa-whatsapp"></i></a>` : ''}
+                   </div>
                    <div class="text-yellow-500 text-xs mb-1">${stars} <span class="text-gray-400">(${d.rating_count})</span></div>
                    <div class="text-green-600 font-bold my-1 text-sm">${d.price} د.ل</div>
-                   <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-brand-600 text-white text-xs py-1.5 rounded-lg mt-1 hover:bg-brand-700">طلب</button>
-               `;
+                   <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-brand-600 text-white text-xs py-1.5 rounded-lg hover:bg-brand-700 ${!d.is_available ? 'opacity-50' : ''}">طلب</button>
+                `;
                 list.appendChild(card);
             }
         });
