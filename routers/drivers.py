@@ -109,7 +109,7 @@ def update_location(
 def get_nearby_drivers(lat: float, lng: float, db: Session = Depends(get_db)):
     # Simple bounding box or just return all available for MVP
     # Returning all available drivers
-    drivers = db.query(models.DriverProfile).filter(models.DriverProfile.is_available == True).all()
+    drivers = db.query(models.DriverProfile).all()
     
     # Enrich with names
     results = []
