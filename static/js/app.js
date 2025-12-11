@@ -330,15 +330,16 @@ async function loadNearbyDrivers(lat, lng) {
         });
         const drivers = await res.json();
         const list = document.getElementById('nearbyDriversList');
-        // Clear list to update cards (simple approach)
         list.innerHTML = '';
 
         const activeDriverIds = new Set();
 
         drivers.forEach(d => {
+            const stars = '★'.repeat(Math.round(d.average_rating || 0)) + '☆'.repeat(5 - Math.round(d.average_rating || 0));
+
+            // Add marker only if driver has location
             if (d.current_lat && d.current_lng) {
                 activeDriverIds.add(d.user_id);
-                const stars = '★'.repeat(Math.round(d.average_rating || 0)) + '☆'.repeat(5 - Math.round(d.average_rating || 0));
 
                 const popupContent = `
                     <div class="text-right">
@@ -350,7 +351,6 @@ async function loadNearbyDrivers(lat, lng) {
                     </div>
                 `;
 
-                // Update or Create Marker
                 if (driverMarkers[d.user_id]) {
                     driverMarkers[d.user_id].setLatLng([d.current_lat, d.current_lng]);
                     driverMarkers[d.user_id].getPopup().setContent(popupContent);
@@ -358,36 +358,39 @@ async function loadNearbyDrivers(lat, lng) {
                     const marker = L.marker([d.current_lat, d.current_lng], {
                         icon: L.divIcon({
                             className: 'custom-driver-icon',
-                            html: `<div style="background-color: #2563EB; color: white; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fas fa-truck"></i></div>`,
+                            html: `<div style="background-color: ${d.is_available ? '#10B981' : '#6B7280'}; color: white; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fas fa-truck"></i></div>`,
                             iconSize: [30, 30],
                             iconAnchor: [15, 15]
                         })
                     }).addTo(map).bindPopup(popupContent);
                     driverMarkers[d.user_id] = marker;
                 }
+            }
 
-                // Add card
-                const card = document.createElement('div');
-                card.className = "flex-shrink-0 w-48 bg-white border rounded-xl p-3 shadow-sm text-center cursor-pointer hover:shadow-md transition-all";
+            // Add card for ALL drivers
+            const card = document.createElement('div');
+            card.className = "flex-shrink-0 w-48 bg-white border rounded-xl p-3 shadow-sm text-center cursor-pointer hover:shadow-md transition-all";
+            if (d.current_lat && d.current_lng) {
                 card.onclick = () => {
                     map.setView([d.current_lat, d.current_lng], 15);
                     driverMarkers[d.user_id].openPopup();
                 };
-                card.innerHTML = `
-                   <div class="flex items-center justify-between mb-2">
-                       <div class="font-bold text-gray-800 text-sm">${d.driver_name || 'سائق'}</div>
-                       <span class="px-2 py-0.5 rounded-full text-xs ${d.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${d.is_available ? 'نشط' : 'غير نشط'}</span>
-                   </div>
-                   <div class="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1" dir="ltr">
-                       <i class="fas fa-phone"></i> ${d.phone_number || 'غير متوفر'}
-                       ${d.phone_number ? `<a href="https://wa.me/${d.phone_number.replace(/\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-700"><i class="fab fa-whatsapp"></i></a>` : ''}
-                   </div>
-                   <div class="text-yellow-500 text-xs mb-1">${stars} <span class="text-gray-400">(${d.rating_count})</span></div>
-                   <div class="text-green-600 font-bold my-1 text-sm">${d.price} د.ل</div>
-                   <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-brand-600 text-white text-xs py-1.5 rounded-lg hover:bg-brand-700 ${!d.is_available ? 'opacity-50' : ''}">طلب</button>
-                `;
-                list.appendChild(card);
             }
+            card.innerHTML = `
+               <div class="flex items-center justify-between mb-2">
+                   <div class="font-bold text-gray-800 text-sm">${d.driver_name || 'سائق'}</div>
+                   <span class="px-2 py-0.5 rounded-full text-xs ${d.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${d.is_available ? 'نشط' : 'غير نشط'}</span>
+               </div>
+               <div class="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1" dir="ltr">
+                   <i class="fas fa-phone"></i> ${d.phone_number || 'غير متوفر'}
+                   ${d.phone_number ? `<a href="https://wa.me/${d.phone_number.replace(/\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-700"><i class="fab fa-whatsapp"></i></a>` : ''}
+               </div>
+               <div class="text-yellow-500 text-xs mb-1">${stars} <span class="text-gray-400">(${d.rating_count})</span></div>
+               <div class="text-green-600 font-bold my-1 text-sm">${d.price} د.ل</div>
+               ${!d.current_lat ? '<div class="text-xs text-orange-500 mb-1">لا يوجد موقع</div>' : ''}
+               <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-brand-600 text-white text-xs py-1.5 rounded-lg hover:bg-brand-700 ${!d.is_available ? 'opacity-50' : ''}">طلب</button>
+            `;
+            list.appendChild(card);
         });
 
         // Remove old markers
