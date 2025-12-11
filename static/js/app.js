@@ -125,7 +125,9 @@ async function initDashboard() {
             startLocationTracking();
         }
     } else {
-        console.error(e);
+        document.getElementById('customerView').classList.remove('hidden');
+        initMap();
+        loadCustomerOrders();
     }
 }
 
