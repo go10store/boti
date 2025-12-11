@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict
 import models, schemas
 from database import get_db
-from security import get_current_user
+from routers.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
