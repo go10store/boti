@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas
 from database import get_db
-from security import get_current_user
+from routers.auth import get_current_user
 from routers.notifications import send_notification_to_user
 
 router = APIRouter(prefix="/safety", tags=["Safety"])
