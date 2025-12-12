@@ -369,26 +369,47 @@ async function loadNearbyDrivers(lat, lng) {
 
             // Add card for ALL drivers
             const card = document.createElement('div');
-            card.className = "flex-shrink-0 w-48 bg-white border rounded-xl p-3 shadow-sm text-center cursor-pointer hover:shadow-md transition-all";
-            if (d.current_lat && d.current_lng) {
-                card.onclick = () => {
-                    map.setView([d.current_lat, d.current_lng], 15);
-                    driverMarkers[d.user_id].openPopup();
-                };
-            }
+            card.className = "flex-shrink-0 w-56 bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all";
+
             card.innerHTML = `
-               <div class="flex items-center justify-between mb-2">
-                   <div class="font-bold text-gray-800 text-sm">${d.driver_name || 'سائق'}</div>
-                   <span class="px-2 py-0.5 rounded-full text-xs ${d.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${d.is_available ? 'نشط' : 'غير نشط'}</span>
+               <div class="flex items-center justify-between mb-3">
+                   <div class="font-bold text-gray-900">${d.driver_name || 'سائق'}</div>
+                   <span class="px-2 py-1 rounded-full text-xs font-bold ${d.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                       ${d.is_available ? '🟢 نشط' : '⚫ غير نشط'}
+                   </span>
                </div>
-               <div class="text-xs text-gray-500 mb-1 flex items-center justify-center gap-1" dir="ltr">
-                   <i class="fas fa-phone"></i> ${d.phone_number || 'غير متوفر'}
-                   ${d.phone_number ? `<a href="https://wa.me/${d.phone_number.replace(/\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-700"><i class="fab fa-whatsapp"></i></a>` : ''}
+               
+               <div class="space-y-2 mb-3">
+                   <div class="flex items-center justify-between text-xs">
+                       <span class="text-gray-500">السعر:</span>
+                       <span class="text-green-600 font-bold text-sm">${d.price} د.ل</span>
+                   </div>
+                   <div class="flex items-center justify-between text-xs">
+                       <span class="text-gray-500">التقييم:</span>
+                       <span class="text-yellow-500">${stars}</span>
+                   </div>
+                   ${!d.current_lat ? '<div class="text-xs text-orange-500 text-center py-1 bg-orange-50 rounded">📍 لا يوجد موقع</div>' : ''}
                </div>
-               <div class="text-yellow-500 text-xs mb-1">${stars} <span class="text-gray-400">(${d.rating_count})</span></div>
-               <div class="text-green-600 font-bold my-1 text-sm">${d.price} د.ل</div>
-               ${!d.current_lat ? '<div class="text-xs text-orange-500 mb-1">لا يوجد موقع</div>' : ''}
-               <button onclick="openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" class="w-full bg-brand-600 text-white text-xs py-1.5 rounded-lg hover:bg-brand-700 ${!d.is_available ? 'opacity-50' : ''}">طلب</button>
+               
+               <div class="flex gap-2 mb-2">
+                   ${d.phone_number ? `
+                   <a href="https://wa.me/${d.phone_number.replace(/\D/g, '')}" 
+                      target="_blank" 
+                      onclick="event.stopPropagation()"
+                      class="flex-1 bg-green-500 text-white text-xs py-2 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center gap-1">
+                       <i class="fab fa-whatsapp"></i> واتساب
+                   </a>` : ''}
+                   ${d.current_lat ? `
+                   <button onclick="event.stopPropagation(); map.setView([${d.current_lat}, ${d.current_lng}], 15); driverMarkers[${d.user_id}].openPopup();" 
+                           class="flex-1 bg-blue-500 text-white text-xs py-2 rounded-lg hover:bg-blue-600 transition-all">
+                       📍 الموقع
+                   </button>` : ''}
+               </div>
+               
+               <button onclick="event.stopPropagation(); openBookingModal(${d.user_id}, '${d.driver_name}', ${d.price})" 
+                       class="w-full bg-brand-600 text-white text-sm font-bold py-2.5 rounded-lg hover:bg-brand-700 transition-all shadow-md ${!d.is_available ? 'opacity-50' : ''}">
+                   🚚 طلب الآن
+               </button>
             `;
             list.appendChild(card);
         });
