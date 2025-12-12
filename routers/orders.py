@@ -27,6 +27,19 @@ def create_order(
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
+    
+    # Send notification to driver
+    try:
+        from routers.notifications import send_notification_to_user
+        send_notification_to_user(
+            order.driver_id,
+            "طلب جديد!",
+            f"لديك طلب جديد من {current_user.full_name} بقيمة {order.amount} د.ل",
+            db
+        )
+    except Exception as e:
+        print(f"Notification error: {e}")
+    
     return new_order
 
 @router.get("/my", response_model=List[schemas.OrderOut])
