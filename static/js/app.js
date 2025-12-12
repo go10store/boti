@@ -20,6 +20,65 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+// LOGIN & REGISTER FUNCTIONS
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const phone = document.getElementById('phone').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ username: phone, password })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('role', data.role);
+            localStorage.setItem('userName', data.full_name);
+            localStorage.setItem('userId', data.user_id);
+            showToast('مرحباً بك! 🎉', 'success');
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        } else {
+            const err = await res.json();
+            showToast(err.detail || 'خطأ في تسجيل الدخول', 'error');
+        }
+    } catch (e) {
+        showToast('فشل الاتصال بالخادم', 'error');
+    }
+});
+
+document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fullname = document.getElementById('reg_fullname').value;
+    const phone = document.getElementById('reg_phone').value;
+    const password = document.getElementById('reg_password').value;
+    const role = document.getElementById('reg_role').value;
+
+    try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ full_name: fullname, phone_number: phone, password, role })
+        });
+
+        if (res.ok) {
+            showToast('تم إنشاء الحساب بنجاح! 🎉', 'success');
+            setTimeout(() => {
+                toggleRegister();
+                document.getElementById('phone').value = phone;
+            }, 1500);
+        } else {
+            const err = await res.json();
+            showToast(err.detail || 'فشل التسجيل', 'error');
+        }
+    } catch (e) {
+        showToast('فشل الاتصال بالخادم', 'error');
+    }
+});
+
 // Global vars
 let map;
 let marker;
